@@ -149,9 +149,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LogicMembroC.h" />
-    <ClInclude Include="ModelosMembroC.h" />
-    <ClInclude Include="Primitivas.h" />
+    <ClInclude Include="src\render\ModelosMembroC.h" />
+    <ClInclude Include="src\render\Primitivas.h" />
+    <ClInclude Include="src\scene\LogicMembroC.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

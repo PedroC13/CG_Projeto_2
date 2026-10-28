@@ -1,7 +1,7 @@
 #include <GL/freeglut.h>
 #include <cmath>
-#include "../ModelosMembroC.h" // Seu arquivo com os 3 modelos
-#include "../LogicMembroC.h"
+#include "render/ModelosMembroC.h"
+#include "scene/LogicMembroC.h"
 
 GerenciadorCena gerenciador;
 
