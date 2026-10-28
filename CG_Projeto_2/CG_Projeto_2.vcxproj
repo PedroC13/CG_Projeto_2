@@ -149,6 +149,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CameraMembroA.h" />
     <ClInclude Include="LogicMembroC.h" />
     <ClInclude Include="ModelosMembroC.h" />
     <ClInclude Include="Primitivas.h" />
