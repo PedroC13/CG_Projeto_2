@@ -2,10 +2,27 @@
 #include <cmath>
 #include "render/ModelosMembroC.h"
 #include "scene/LogicMembroC.h"
+#include "../Textura.h"
 
 GerenciadorCena gerenciador;
+// Defina as variáveis globais ou membros da classe para armazenar os IDs das texturas
+GLuint texMostradorRelogio;
+GLuint texMadeiraRelogio;
+GLuint texLanterna;
+GLuint texVitral;
+GLuint texMolduraVitral;
 
 void setup() {
+
+    // ... suas configurações atuais de Iluminação e Depth Test ...
+    glEnable(GL_DEPTH_TEST);
+
+    // Carrega as imagens
+    texMadeiraRelogio = carregarTextura("assets/textures/madeira.jpg");
+    texMostradorRelogio = carregarTextura("assets/textures/faceRelogio.png");
+    texLanterna = carregarTextura("assets/textures/metal.jpg");
+    texVitral = carregarTextura("assets/textures/vitral.jpg");
+	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
 }

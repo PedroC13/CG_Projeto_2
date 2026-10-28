@@ -152,6 +152,7 @@
     <ClInclude Include="src\render\ModelosMembroC.h" />
     <ClInclude Include="src\render\Primitivas.h" />
     <ClInclude Include="src\scene\LogicMembroC.h" />
+    <ClInclude Include="Textura.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
