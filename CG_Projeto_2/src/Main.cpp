@@ -19,6 +19,7 @@ GLuint texVitral;
 GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
+GLuint texMadeiraBanco = 0;
 
 int tempo_anterior = 0;
 
@@ -39,6 +40,7 @@ void setup() {
     texVitral = carregarTextura("assets/textures/vitral.jpg");
 	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
 	texChao = carregarTextura("assets/textures/chao.jpg");
+    texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -102,6 +104,7 @@ void display() {
 	glUseProgram(shaderPrincipal); // Ativa o shader principal
     glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
 	desenharChao(texChao); // Desenha o chão com a textura carregada
+    desenharFileirasBancos(texMadeiraBanco); // desenha a fileira de bancos
     glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
 
     // ALTERNA ENTRE WIREFRAME E MODO SÓLIDO
