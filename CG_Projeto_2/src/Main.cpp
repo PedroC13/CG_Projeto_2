@@ -1,11 +1,13 @@
+#include "render/ShaderMembroA.h"
 #include <GL/freeglut.h>
 #include <cmath>
 #include "render/ModelosMembroC.h"
 #include "scene/LogicMembroC.h"
 #include "../Textura.h"
+#include "render/ModelosMembroA.h"
 #include <iostream>
 #include <cstdlib>
-#include "../CameraMembroA.h"
+#include "player/CameraMembroA.h"
 
 
 GerenciadorCena gerenciador;
@@ -15,6 +17,8 @@ GLuint texMadeiraRelogio;
 GLuint texLanterna;
 GLuint texVitral;
 GLuint texMolduraVitral;
+GLuint shaderPrincipal = 0;
+GLuint texChao = 0;
 
 int tempo_anterior = 0;
 
@@ -23,12 +27,18 @@ void setup() {
     // ... suas configurações atuais de Iluminação e Depth Test ...
     glEnable(GL_DEPTH_TEST);
 
+	// Carrega e compila os shaders
+	glewInit();
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	shaderPrincipal = criarProgramaShader();
+
     // Carrega as imagens
     texMadeiraRelogio = carregarTextura("assets/textures/madeira.jpg");
     texMostradorRelogio = carregarTextura("assets/textures/faceRelogio.png");
     texLanterna = carregarTextura("assets/textures/metal.jpg");
     texVitral = carregarTextura("assets/textures/vitral.jpg");
 	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
+	texChao = carregarTextura("assets/textures/chao.jpg");
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -89,6 +99,10 @@ void display() {
 
     // Posicionamento da Câmera
 	cameraAplicar();
+	glUseProgram(shaderPrincipal); // Ativa o shader principal
+    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
+	desenharChao(texChao); // Desenha o chão com a textura carregada
+    glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
 
     // ALTERNA ENTRE WIREFRAME E MODO SÓLIDO
     if (modoWireframe) {
