@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/PedroGomes/Documents/5 Periodo/CG/CG_Projeto_2/out/build/x64-Debug/cmake_install.cmake",
+		"C:/Users/PedroGomes/Documents/5 Periodo/CG/CG_Projeto_2/out/build/x64-Debug/_deps/glfw-build/cmake_install.cmake",
+		"C:/Users/PedroGomes/Documents/5 Periodo/CG/CG_Projeto_2/out/build/x64-Debug/_deps/glfw-build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

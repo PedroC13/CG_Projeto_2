@@ -1,0 +1,29 @@
+# ninja log v7
+8	58	8147726898121793	C:/Users/PedroGomes/Documents/5 Periodo/CG/CG_Projeto_2/out/build/x64-Debug/CMakeFiles/cmake.verify_globs	3bc14eb7f4c90373
+126	612	8147726899385146	_deps/glfw-build/src/CMakeFiles/glfw.dir/osmesa_context.c.obj	1192d38979dd7164
+93	663	8147726899066878	_deps/glfw-build/src/CMakeFiles/glfw.dir/platform.c.obj	e18f3e97c805c0c6
+142	676	8147726899597442	_deps/glfw-build/src/CMakeFiles/glfw.dir/null_monitor.c.obj	d523cf08b911574b
+101	687	8147726899140403	_deps/glfw-build/src/CMakeFiles/glfw.dir/vulkan.c.obj	859d292adc9f2939
+84	699	8147726898988614	_deps/glfw-build/src/CMakeFiles/glfw.dir/monitor.c.obj	179bd1f5843fd8c8
+77	712	8147726898936930	_deps/glfw-build/src/CMakeFiles/glfw.dir/input.c.obj	a338c5b8eb0fe418
+69	724	8147726898753812	_deps/glfw-build/src/CMakeFiles/glfw.dir/init.c.obj	b6899bee008d476b
+160	736	8147726899752819	_deps/glfw-build/src/CMakeFiles/glfw.dir/null_joystick.c.obj	ff2b7250e6fec89c
+174	747	8147726899881233	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_time.c.obj	e01348d4d2fa050d
+134	750	8147726899472495	_deps/glfw-build/src/CMakeFiles/glfw.dir/null_init.c.obj	5b7070f959167adf
+167	754	8147726899826946	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_module.c.obj	616fa3e0c87c9dc9
+181	757	8147726899971349	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_thread.c.obj	167afe15c9d87de4
+151	761	8147726899666413	_deps/glfw-build/src/CMakeFiles/glfw.dir/null_window.c.obj	69c6064106d5a460
+62	765	8147726898753812	_deps/glfw-build/src/CMakeFiles/glfw.dir/context.c.obj	fb295716b1fd5936
+110	769	8147726899232481	_deps/glfw-build/src/CMakeFiles/glfw.dir/window.c.obj	54d94a7d41efbaad
+117	771	8147726899343211	_deps/glfw-build/src/CMakeFiles/glfw.dir/egl_context.c.obj	edbb65d3254b896e
+644	1080	8147726904596047	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_init.c.obj	85ce0a852626fcd1
+701	1092	8147726905178225	_deps/glfw-build/src/CMakeFiles/glfw.dir/wgl_context.c.obj	f999fe51302cfb4b
+665	1096	8147726904822289	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_joystick.c.obj	87ddde5dc9052b82
+688	1126	8147726905038576	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_window.c.obj	5547bd12b85f52d9
+677	1145	8147726904940940	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_monitor.c.obj	bb979257404c8127
+737	1183	8147726905542281	CMakeFiles/CG_Projeto_2.dir/CG_Projeto_2/src/render/stb_image_impl.cpp.obj	751fb94d3db7a5bc
+726	1301	8147726905385629	CMakeFiles/CG_Projeto_2.dir/CG_Projeto_2/src/glad.c.obj	aaf02878e57ab055
+1147	1302	8147726909563646	_deps/glfw-build/src/glfw3.lib	7b246f3b488f6ccf
+714	2055	8147726905306810	CMakeFiles/CG_Projeto_2.dir/CG_Projeto_2/src/Main.cpp.obj	6dc702bb903b0399
+2059	2782	8147726918742111	CG_Projeto_2.exe	f106d893cbef7131
+193	385	8148342712291510	C:/Users/PedroGomes/Documents/5 Periodo/CG/CG_Projeto_2/out/build/x64-Debug/CMakeFiles/cmake.verify_globs	3bc14eb7f4c90373
