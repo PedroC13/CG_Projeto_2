@@ -1,5 +1,8 @@
 #include <GL/freeglut.h>
 #include <cmath>
+#include "render/ModelosMembroC.h"
+#include "scene/LogicMembroC.h"
+#include "../Textura.h"
 #include <iostream>
 #include <cstdlib>
 #include "../ModelosMembroC.h" // Seu arquivo com os 3 modelos
@@ -8,10 +11,26 @@
 
 
 GerenciadorCena gerenciador;
+// Defina as variáveis globais ou membros da classe para armazenar os IDs das texturas
+GLuint texMostradorRelogio;
+GLuint texMadeiraRelogio;
+GLuint texLanterna;
+GLuint texVitral;
+GLuint texMolduraVitral;
 
 int tempo_anterior = 0;
 
 void setup() {
+
+    // ... suas configurações atuais de Iluminação e Depth Test ...
+    glEnable(GL_DEPTH_TEST);
+
+    // Carrega as imagens
+    texMadeiraRelogio = carregarTextura("assets/textures/madeira.jpg");
+    texMostradorRelogio = carregarTextura("assets/textures/faceRelogio.png");
+    texLanterna = carregarTextura("assets/textures/metal.jpg");
+    texVitral = carregarTextura("assets/textures/vitral.jpg");
+	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();

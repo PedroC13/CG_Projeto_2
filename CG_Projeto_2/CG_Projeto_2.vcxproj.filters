@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Arquivos de Cabeçalho\render">
+      <UniqueIdentifier>{C2DBF3D1-1D87-4E2F-9B29-4FBCB7A0B1C6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Arquivos de Cabeçalho\scene">
+      <UniqueIdentifier>{0BB2F716-3E8D-4B0C-8E1B-6F24C0E49C8C}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
@@ -23,14 +29,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Primitivas.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
+    <ClInclude Include="src\render\ModelosMembroC.h">
+      <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
-    <ClInclude Include="ModelosMembroC.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
+    <ClInclude Include="src\render\Primitivas.h">
+      <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
-    <ClInclude Include="LogicMembroC.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
+    <ClInclude Include="src\scene\LogicMembroC.h">
+      <Filter>Arquivos de Cabeçalho\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Textura.h">
+      <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
