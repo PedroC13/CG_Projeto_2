@@ -5,8 +5,6 @@
 #include "../Textura.h"
 #include <iostream>
 #include <cstdlib>
-#include "../ModelosMembroC.h" // Seu arquivo com os 3 modelos
-#include "../LogicMembroC.h"
 #include "../CameraMembroA.h"
 
 

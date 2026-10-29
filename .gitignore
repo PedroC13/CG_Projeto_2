@@ -4,6 +4,7 @@
 *.user
 *.suo
 *.vcxproj.user
+out/
 
 # Saída de compilação (executáveis, objetos, debug)
 [Dd]ebug/

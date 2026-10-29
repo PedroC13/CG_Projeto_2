@@ -154,9 +154,6 @@
     <ClInclude Include="src\scene\LogicMembroC.h" />
     <ClInclude Include="Textura.h" />
     <ClInclude Include="CameraMembroA.h" />
-    <ClInclude Include="LogicMembroC.h" />
-    <ClInclude Include="ModelosMembroC.h" />
-    <ClInclude Include="Primitivas.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
