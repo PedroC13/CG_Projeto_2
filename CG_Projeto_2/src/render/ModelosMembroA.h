@@ -115,3 +115,71 @@ inline void desenharPortasDuplas(float posX, float posY, float posZ, float rotY,
 
     glPopMatrix();
 }
+
+// Textura de 1 pixel branco: com ela, o shader mostra só a cor do glColor
+inline GLuint criarTexturaBranca() {
+    unsigned char branco[3] = { 255, 255, 255 };
+    GLuint id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, branco);
+    return id;
+}
+
+// Lustre pendente: (posX, posY, posZ) é o ponto de fixação no TETO.
+// tempo em segundos, para o balanço.
+inline void desenharLustre(float posX, float posY, float posZ, float tempo,
+    GLuint texMetal, GLuint texBranca) {
+    const int   N = 8;          // braços, segmentos do aro e velas
+    const float R = 0.6f;       // raio do aro (m)
+    const float PI = 3.14159265f;
+
+    glPushMatrix();
+    glTranslatef(posX, posY, posZ);                   // ponto fixo no teto
+
+    // BALANÇO: um único giro no topo move TODA a árvore abaixo
+    float balanco = 3.0f * std::sin(1.2f * tempo);    // θ = A·sen(ωt), em graus
+    glRotatef(balanco, 0.0f, 0.0f, 1.0f);
+
+    // --- Corrente: 6 elos de 30 cm, alternando a orientação ---
+    glBindTexture(GL_TEXTURE_2D, texMetal);
+    glColor3f(0.45f, 0.4f, 0.3f);                     // metal escuro, envelhecido
+    for (int k = 0; k < 6; ++k) {
+        glPushMatrix();
+        glTranslatef(0.0f, -0.15f - k * 0.3f, 0.0f);  // centro do elo k
+        glRotatef(k * 90.0f, 0.0f, 1.0f, 0.0f);       // elos alternam 90°, como numa corrente real
+        peca(0.0f, 0.0f, 0.0f, 0.08f, 0.28f, 0.02f);
+        glPopMatrix();
+    }
+
+    // Tudo abaixo fica preso ao fim da corrente (1,8 m abaixo do teto)
+    glTranslatef(0.0f, -1.8f, 0.0f);
+    peca(0.0f, -0.08f, 0.0f, 0.18f, 0.16f, 0.18f);   // cubo central
+
+    for (int i = 0; i < N; ++i) {
+        glPushMatrix();
+        glRotatef(i * 360.0f / N, 0.0f, 1.0f, 0.0f);  // gira até a direção do braço i
+
+        // Braço: do centro até o aro, ao longo de +X
+        glBindTexture(GL_TEXTURE_2D, texMetal);
+        glColor3f(0.45f, 0.4f, 0.3f);
+        peca(R / 2.0f, -0.1f, 0.0f, R, 0.03f, 0.03f);
+
+        // Segmento do aro: na distância R, deitado na direção tangente (Z)
+        float comprimento = 2.0f * R * std::sin(PI / N);   // corda entre dois braços
+        peca(R, -0.1f, 0.0f, 0.04f, 0.04f, comprimento);
+
+        // Vela na ponta do braço, apoiada no aro
+        glBindTexture(GL_TEXTURE_2D, texBranca);
+        glColor3f(0.95f, 0.9f, 0.75f);                     // cera creme
+        peca(R, 0.02f, 0.0f, 0.05f, 0.20f, 0.05f);
+        glColor3f(1.0f, 0.75f, 0.2f);                      // chama (o B pode dar brilho)
+        peca(R, 0.15f, 0.0f, 0.025f, 0.05f, 0.025f);
+
+        glPopMatrix();
+    }
+
+    glPopMatrix();
+}

@@ -21,6 +21,7 @@ GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
 GLuint texMetalPorta = 0;
+GLuint texBranca = 0;
 
 int tempo_anterior = 0;
 
@@ -43,6 +44,7 @@ void setup() {
 	texChao = carregarTextura("assets/textures/chao.jpg");
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
     texMetalPorta = carregarTextura("assets/textures/metal.jpg");
+    texBranca = criarTexturaBranca();
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -110,6 +112,8 @@ void display() {
     Porta& entrada = gerenciador.portas[0];   // porta da entrada principal (lógica do C)
     desenharPortasDuplas(entrada.posX, entrada.posY, entrada.posZ, entrada.rotInicialY,
         entrada.anguloAtual, texMadeiraBanco, texMetalPorta);
+    float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;            // segundos desde o início
+    desenharLustre(0.0f, 6.0f, -4.0f, tempoSeg, texMetalPorta, texBranca);  // preso a 6 m de altura
     glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
 
     // ALTERNA ENTRE WIREFRAME E MODO SÓLIDO
