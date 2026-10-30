@@ -20,6 +20,7 @@ GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
+GLuint texMetalPorta = 0;
 
 int tempo_anterior = 0;
 
@@ -41,6 +42,7 @@ void setup() {
 	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
 	texChao = carregarTextura("assets/textures/chao.jpg");
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
+    texMetalPorta = carregarTextura("assets/textures/metal.jpg");
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -88,7 +90,7 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == 't' || key == 'T') {
         modoWireframe = !modoWireframe; // Inverte o estado
         glutPostRedisplay();
-    }
+    } 
 
 	if (key == 27) { // ESC para sair
 		exit(0);
@@ -105,6 +107,9 @@ void display() {
     glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
 	desenharChao(texChao); // Desenha o chão com a textura carregada
     desenharFileirasBancos(texMadeiraBanco); // desenha a fileira de bancos
+    Porta& entrada = gerenciador.portas[0];   // porta da entrada principal (lógica do C)
+    desenharPortasDuplas(entrada.posX, entrada.posY, entrada.posZ, entrada.rotInicialY,
+        entrada.anguloAtual, texMadeiraBanco, texMetalPorta);
     glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
 
     // ALTERNA ENTRE WIREFRAME E MODO SÓLIDO
