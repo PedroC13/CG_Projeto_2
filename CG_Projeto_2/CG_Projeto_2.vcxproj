@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\render\ModelosMembroA.h" />
+    <ClInclude Include="src\render\ModelosMembroB.h" />
     <ClInclude Include="src\render\ShaderMembroA.h" />
     <ClInclude Include="src\render\ModelosMembroC.h" />
     <ClInclude Include="src\render\Primitivas.h" />

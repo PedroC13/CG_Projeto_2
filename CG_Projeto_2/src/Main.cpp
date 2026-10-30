@@ -5,6 +5,7 @@
 #include "scene/LogicMembroC.h"
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
+#include "render/ModelosMembroB.h"
 #include <iostream>
 #include <cstdlib>
 #include "player/CameraMembroA.h"
@@ -19,6 +20,7 @@ GLuint texVitral;
 GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
+GLuint texPedraAltar = 0; // Membro B - altar
 
 int tempo_anterior = 0;
 
@@ -39,6 +41,7 @@ void setup() {
     texVitral = carregarTextura("assets/textures/vitral.jpg");
 	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
 	texChao = carregarTextura("assets/textures/chao.jpg");
+	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -121,6 +124,9 @@ void display() {
     desenharRelogioPendulo(0.0f, 0.0f, 0.0f, 0.0f, anguloPendulo);
 
     desenharLanterna(2.0f, 0.0f, 0.0f, 0.0f);
+
+    // --- MEMBRO B ---
+    desenharAltar(0.0f, 0.0f, -4.0f, 0.0f); // posição de teste; frente virada para a câmera
 
     glutSwapBuffers();
 }
