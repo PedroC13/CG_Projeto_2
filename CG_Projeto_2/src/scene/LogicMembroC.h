@@ -1,30 +1,35 @@
-#pragma once
 #ifndef LOGIC_MEMBRO_C_H
 #define LOGIC_MEMBRO_C_H
 
-#include <cmath>
 #include <vector>
+#include <cmath>
 
-// ----------------------------------------------------------------------------
-// ESTRUTURA PARA CONTROLAR PORTAS
-// ----------------------------------------------------------------------------
+struct AABB {
+    float minX, maxX;
+    float minZ, maxZ;
+
+    bool colide(float x, float z, float raioJogador = 0.2f) const {
+        return (x + raioJogador > minX && x - raioJogador < maxX &&
+            z + raioJogador > minZ && z - raioJogador < maxZ);
+    }
+};
+
 struct Porta {
     int id;
-    float posX, posY, posZ;  // Posição no mundo 3D
-    float rotInicialY;       // Rotação da parede (0, 90, 180, etc.)
-    float anguloAtual;       // Ângulo atual de abertura (0.0f a 90.0f)
-    bool aberta;             // Estado: true = aberta, false = fechada/trancada
-    float raioInteracao;     // Distância máxima para o jogador interagir
+    float posX, posY, posZ;
+    float rotInicialY;
+    float anguloAtual;
+    bool aberta;
+    float raioInteracao;
 
     Porta(int id, float x, float y, float z, float rotBase)
         : id(id), posX(x), posY(y), posZ(z), rotInicialY(rotBase),
         anguloAtual(0.0f), aberta(false), raioInteracao(2.0f) {
     }
 
-    // Atualiza a animação de rotação suave da porta
     void atualizarAnimacao(float deltaTime) {
         float anguloAlvo = aberta ? 90.0f : 0.0f;
-        float velocidade = 180.0f; // Graus por segundo
+        float velocidade = 180.0f;
 
         if (anguloAtual < anguloAlvo) {
             anguloAtual += velocidade * deltaTime;
@@ -37,48 +42,88 @@ struct Porta {
     }
 };
 
-// ----------------------------------------------------------------------------
-// ESTRUTURA PARA CONTROLAR VELAS / CASTIÇAIS
-// ----------------------------------------------------------------------------
 struct Vela {
     int id;
-    float posX, posY, posZ;  // Posição da chama no mundo 3D
-    bool acesa;              // Estado: true = acesa, false = apagada
-    float raioInteracao;     // Distância máxima para acender/apagar
-    float corLuz[3];         // Cor RGB da luz emitida
+    float posX, posY, posZ;
+    bool acesa;
+    float raioInteracao;
 
     Vela(int id, float x, float y, float z)
         : id(id), posX(x), posY(y), posZ(z), acesa(true), raioInteracao(1.8f) {
-        corLuz[0] = 1.0f; // R (Laranja)
-        corLuz[1] = 0.5f; // G
-        corLuz[2] = 0.1f; // B
     }
 };
 
-// ----------------------------------------------------------------------------
-// GERENCIADOR GLOBAL DO ESTADO DA CENA
-// ----------------------------------------------------------------------------
+class SistemaColisao {
+public:
+    AABB limitesIgreja;
+    std::vector<AABB> obstaculos;
+
+    void inicializar() {
+        // Limites expansivos da nave da igreja
+        limitesIgreja = { -4.7f, 4.7f, -14.7f, 4.7f };
+
+        obstaculos.clear();
+
+        // 1. Relógio de Pêndulo no Canto (X=3.8, Z=-2.0)
+        obstaculos.push_back({ 3.4f, 4.2f, -2.3f, -1.7f });
+
+        // 2. Bancos Esquerda (Membro A) - caixa ajustada ao tamanho real
+        obstaculos.push_back({ -3.6f, -1.2f, -8.5f, -2.5f });
+
+        // 3. Bancos Direita (Membro A) - caixa ajustada ao tamanho real
+        obstaculos.push_back({ 1.2f, 3.6f, -8.5f, -2.5f });
+    }
+
+    // Processa o movimento usando raio padrão mais fino (0.2f)
+    void processarMovimento(float posAntigaX, float posAntigaZ, float& posNovaX, float& posNovaZ, float raioJogador = 0.2f) {
+        if (!posicaoValida(posNovaX, posAntigaZ, raioJogador)) {
+            posNovaX = posAntigaX;
+        }
+
+        if (!posicaoValida(posAntigaX, posNovaZ, raioJogador)) {
+            posNovaZ = posAntigaZ;
+        }
+    }
+
+private:
+    bool posicaoValida(float x, float z, float raioJogador) {
+        if (x - raioJogador < limitesIgreja.minX || x + raioJogador > limitesIgreja.maxX ||
+            z - raioJogador < limitesIgreja.minZ || z + raioJogador > limitesIgreja.maxZ) {
+            return false;
+        }
+
+        for (const auto& obs : obstaculos) {
+            if (obs.colide(x, z, raioJogador)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+
 class GerenciadorCena {
 public:
     std::vector<Porta> portas;
     std::vector<Vela> velas;
+    SistemaColisao colisao;
+    bool lanternaLigada = true; // Estado da Lanterna (Tecla F)
 
     void inicializarCena() {
+        colisao.inicializar();
+
         portas.clear();
         velas.clear();
 
-        // 1. Instancia as 3 Portas da Igreja
-        portas.push_back(Porta(1, 0.0f, 0.0f, 5.0f, 0.0f)); // Entrada Principal
+        portas.push_back(Porta(1, 0.0f, 0.0f, 4.6f, 0.0f)); // Entrada
         portas.push_back(Porta(2, -4.5f, 0.0f, -5.0f, 90.0f)); // Confessionário
         portas.push_back(Porta(3, 4.5f, 0.0f, -10.0f, -90.0f)); // Sacristia
 
-        // 2. Instancia as 3 Velas/Castiçais
-        velas.push_back(Vela(1, -2.0f, 0.8f, -3.0f)); // Corredor Esquerdo
-        velas.push_back(Vela(2, 2.0f, 0.8f, -8.0f)); // Corredor Direito
-        velas.push_back(Vela(3, 0.0f, 1.0f, -12.5f)); // Altar Principal
+        velas.push_back(Vela(1, -2.0f, 0.8f, -3.0f));
+        velas.push_back(Vela(2, 2.0f, 0.8f, -8.0f));
+        velas.push_back(Vela(3, 0.0f, 1.0f, -12.5f));
     }
 
-    // Atualiza animações a cada frame
     void atualizar(float deltaTime) {
         for (auto& porta : portas) {
             porta.atualizarAnimacao(deltaTime);
