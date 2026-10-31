@@ -21,6 +21,8 @@ GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
 GLuint texPedraAltar = 0; // Membro B - altar
+GLuint texMetalCastical = 0; // Membro B - castiçal
+GLuint texMadeiraConfessionario = 0; // Membro B - confessionário
 GLuint texMetalPorta = 0;
 GLuint texBranca = 0;
 GLuint texParede = 0;
@@ -47,6 +49,8 @@ void setup() {
     texParede = carregarTextura("assets/textures/pedra.jpg"); // ou outra textura de parede
     texTeto = carregarTextura("assets/textures/madeira.jpg"); // ou outra textura de teto
     texBranca = criarTexturaBranca();
+	texMetalCastical = carregarTextura("assets/textures/metal.jpg"); // Membro B
+	texMadeiraConfessionario = carregarTextura("assets/textures/madeira.jpg"); // Membro B
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
     glutSetCursor(GLUT_CURSOR_NONE);
@@ -185,8 +189,10 @@ void display() {
     desenharLanternaNaMao();
 
     // --- MEMBRO B ---
-    // Altar reposicionado para a parede do fundo oposta à entrada (Z = -28.0f)
-    desenharAltar(0.0f, 0.0f, -28.0f, 0.0f);
+    desenharAltar(0.0f, 0.0f, -10.0f, 0.0f); // posição de teste; frente virada para a câmera
+    desenharCastical(-0.9f, 1.0f, -4.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
+    desenharCastical( 0.9f, 1.0f, -4.0f, true);
+    desenharConfessionario(-4.0f, 0.0f, -13.0f, 90.0f); // posição de teste; frente virada para o centro
 
     glutSwapBuffers();
 }
