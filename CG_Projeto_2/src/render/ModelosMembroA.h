@@ -43,11 +43,69 @@ inline void desenharParedes(GLuint textura) {
     glTexCoord2f(0.0f, 3.0f); glVertex3f( 9.4f, 10.0f, -29.4f);
 
     // Parede Traseira / Entrada (Z = 9.4f)
+   // Parede Traseira / Entrada (Z = 9.4f) COM BURACO PARA A PORTA
     glNormal3f(0.0f, 0.0f, -1.0f);
+
+    // Pedaço Esquerdo (-9.4 até -1.2)
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-9.4f, 0.0f, 9.4f);
-    glTexCoord2f(5.0f, 0.0f); glVertex3f( 9.4f, 0.0f, 9.4f);
-    glTexCoord2f(5.0f, 3.0f); glVertex3f( 9.4f, 10.0f, 9.4f);
+    glTexCoord2f(2.2f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(2.2f, 3.0f); glVertex3f(-1.2f, 10.0f, 9.4f);
     glTexCoord2f(0.0f, 3.0f); glVertex3f(-9.4f, 10.0f, 9.4f);
+
+    // Pedaço Direito (1.2 até 9.4)
+    glTexCoord2f(2.8f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(9.4f, 0.0f, 9.4f);
+    glTexCoord2f(5.0f, 3.0f); glVertex3f(9.4f, 10.0f, 9.4f);
+    glTexCoord2f(2.8f, 3.0f); glVertex3f(1.2f, 10.0f, 9.4f);
+
+    // Pedaço Superior (acima da porta, Y = 3.1 até 10.0)
+    glTexCoord2f(2.2f, 0.93f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glTexCoord2f(2.8f, 0.93f); glVertex3f(1.2f, 3.1f, 9.4f);
+    glTexCoord2f(2.8f, 3.00f); glVertex3f(1.2f, 10.0f, 9.4f);
+    glTexCoord2f(2.2f, 3.00f); glVertex3f(-1.2f, 10.0f, 9.4f);
+
+    glEnd();
+}
+
+inline void desenharCorredor(GLuint texParede, GLuint texChao, GLuint texTeto) {
+    // Chão do corredor (Avançando 10 metros para trás: Z de 9.4f até 19.4f)
+    glBindTexture(GL_TEXTURE_2D, texChao);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(1.0f, 3.0f); glVertex3f(1.2f, 0.0f, 19.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-1.2f, 0.0f, 19.4f);
+    glEnd();
+
+    // Teto do corredor (Y = 3.1f)
+    glBindTexture(GL_TEXTURE_2D, texTeto);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 3.1f, 19.4f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(1.2f, 3.1f, 19.4f);
+    glTexCoord2f(1.0f, 3.0f); glVertex3f(1.2f, 3.1f, 9.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glEnd();
+
+    // Paredes Laterais do corredor
+    glBindTexture(GL_TEXTURE_2D, texParede);
+    glBegin(GL_QUADS);
+
+    // Parede Esquerda (X = -1.2f)
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 19.4f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(3.0f, 1.0f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.2f, 3.1f, 19.4f);
+
+    // Parede Direita (X = 1.2f)
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(1.2f, 0.0f, 19.4f);
+    glTexCoord2f(3.0f, 1.0f); glVertex3f(1.2f, 3.1f, 19.4f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(1.2f, 3.1f, 9.4f);
 
     glEnd();
 }

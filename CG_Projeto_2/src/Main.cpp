@@ -110,6 +110,11 @@ void keyboard(unsigned char key, int x, int y) {
         glutPostRedisplay();
     }
 
+    if (key == 'e' || key == 'E') {
+        gerenciador.interagir(cameraX, cameraY, cameraZ);
+        glutPostRedisplay();
+    }
+
     if (key == 27) { // ESC para sair
         exit(0);
     }
@@ -146,6 +151,7 @@ void display() {
     desenharChao(texChao);
     desenharParedes(texParede);
     desenharTeto(texTeto);
+    desenharCorredor(texParede, texChao, texTeto);
     desenharGruposBancos(texMadeiraBanco);
 
     Porta& entrada = gerenciador.portas[0];
@@ -182,17 +188,33 @@ void display() {
     // 4 Relógios nos cantos, rotacionados para olhar para o centro da nave
     desenharRelogioPendulo(-8.8f, 0.0f,  8.8f,  90.0f, anguloPendulo);  // Atrás Esquerda (perto da porta)
     desenharRelogioPendulo( 8.8f, 0.0f,  8.8f, -90.0f, anguloPendulo);  // Atrás Direita (perto da porta)
-    desenharRelogioPendulo(-8.8f, 0.0f, -28.8f, 180.0f, anguloPendulo); // Frente Esquerda (perto do altar)
-    desenharRelogioPendulo( 8.8f, 0.0f, -28.8f,-180.0f, anguloPendulo); // Frente Direita (perto do altar)
+    desenharRelogioPendulo(-8.8f, 0.0f, -28.8f, 90.0f, anguloPendulo); // Frente Esquerda (perto do altar)
+    desenharRelogioPendulo( 8.8f, 0.0f, -28.8f,-90.0f, anguloPendulo); // Frente Direita (perto do altar)
 
     // Renderiza a Lanterna na Mão do Vigia
     desenharLanternaNaMao();
 
     // --- MEMBRO B ---
-    desenharAltar(0.0f, 0.0f, -10.0f, 0.0f); // posição de teste; frente virada para a câmera
-    desenharCastical(-0.9f, 1.0f, -4.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
-    desenharCastical( 0.9f, 1.0f, -4.0f, true);
-    desenharConfessionario(-4.0f, 0.0f, -13.0f, 90.0f); // posição de teste; frente virada para o centro
+    // --- MEMBRO B ---
+    desenharAltar(0.0f, 0.0f, -28.0f, 0.0f);
+
+    // 1 Confessionário na parede esquerda, perto do altar, virado para a nave
+    desenharConfessionario(-8.8f, 0.0f, -21.0f, 90.0f);
+
+    // --- 6 Velas (Castiçais) ---
+    // 2 no tampo do Altar
+    desenharCastical(-1.0f, 1.0f, -28.0f, gerenciador.velas[0].acesa);
+    desenharCastical(1.0f, 1.0f, -28.0f, gerenciador.velas[1].acesa);
+
+    // 2 em cima de Bancos diferentes
+    desenharCastical(-2.0f, 0.47f, 4.0f, gerenciador.velas[2].acesa);
+    desenharCastical(2.0f, 0.47f, 1.0f, gerenciador.velas[3].acesa);
+
+    // 1 no chão perto do confessionário
+    desenharCastical(-6.0f, 0.0f, -20.0f, gerenciador.velas[4].acesa);
+
+    // 1 no chão perto do relógio frontal esquerdo
+    desenharCastical(-7.5f, 0.0f, -27.5f, gerenciador.velas[5].acesa);
 
     glutSwapBuffers();
 }
