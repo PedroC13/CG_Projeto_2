@@ -21,6 +21,8 @@ GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
 GLuint texPedraAltar = 0; // Membro B - altar
+GLuint texMetalPorta = 0;
+GLuint texBranca = 0;
 
 int tempo_anterior = 0;
 
@@ -39,6 +41,8 @@ void setup() {
     texChao = carregarTextura("assets/textures/chao.jpg");
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
 	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
+    texMetalPorta = carregarTextura("assets/textures/metal.jpg");
+    texBranca = criarTexturaBranca();
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
     glutSetCursor(GLUT_CURSOR_NONE);
@@ -90,7 +94,7 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == 't' || key == 'T') {
         modoWireframe = !modoWireframe;
         glutPostRedisplay();
-    }
+    } 
 
     // Alternar Lanterna (Ligar / Desligar ou Mostrar / Esconder)
     if (key == 'f' || key == 'F') {
@@ -126,15 +130,18 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    // 1. Aplica Câmera do Jogador
-    cameraAplicar();
-
-    // 2. Renderiza Chão e Bancos
-    glUseProgram(shaderPrincipal);
-    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);
-    desenharChao(texChao);
-    desenharFileirasBancos(texMadeiraBanco);
-    glUseProgram(0);
+    // Posicionamento da Câmera
+	cameraAplicar();
+	glUseProgram(shaderPrincipal); // Ativa o shader principal
+    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
+	desenharChao(texChao); // Desenha o chão com a textura carregada
+    desenharFileirasBancos(texMadeiraBanco); // desenha a fileira de bancos
+    Porta& entrada = gerenciador.portas[0];   // porta da entrada principal (lógica do C)
+    desenharPortasDuplas(entrada.posX, entrada.posY, entrada.posZ, entrada.rotInicialY,
+        entrada.anguloAtual, texMadeiraBanco, texMetalPorta);
+    float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;            // segundos desde o início
+    desenharLustre(0.0f, 6.0f, -4.0f, tempoSeg, texMetalPorta, texBranca);  // preso a 6 m de altura
+    glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
 
     if (modoWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
