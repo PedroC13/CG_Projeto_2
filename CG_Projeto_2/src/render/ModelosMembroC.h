@@ -135,6 +135,54 @@ inline void desenharVitral(float posX, float posY, float posZ, float rotY) {
 // ============================================================================
 // 2. RELÓGIO DE PÊNDULO (Corpo + Mostrador + Pêndulo Visível)
 // ============================================================================
+inline void desenharCuboTexturizado() {
+    glBegin(GL_QUADS);
+
+    // Frente
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+
+    // Trás
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+
+    // Topo
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Fundo
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+
+    // Direita
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+
+    // Esquerda
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    glEnd();
+}
+
 inline void desenharRelogioPendulo(float posX, float posY, float posZ, float rotY, float anguloPendulo) {
     glPushMatrix();
     glTranslatef(posX, posY, posZ);
@@ -153,21 +201,21 @@ inline void desenharRelogioPendulo(float posX, float posY, float posZ, float rot
     glPushMatrix();
     glTranslatef(0.0f, 0.15f, 0.0f);
     glScalef(0.6f, 0.3f, 0.4f);
-    glutSolidCube(1.0);
+    desenharCuboTexturizado(); // Substituído
     glPopMatrix();
 
-    // Corpo Principal (Espessura Z = 0.32 / 2 = 0.16)
+    // Corpo Principal
     glPushMatrix();
     glTranslatef(0.0f, 1.0f, 0.0f);
     glScalef(0.48f, 1.4f, 0.32f);
-    glutSolidCube(1.0);
+    desenharCuboTexturizado(); // Substituído
     glPopMatrix();
 
-    // Caixa Superior do Mostrador (Espessura Z = 0.38 / 2 = 0.19)
+    // Caixa Superior do Mostrador
     glPushMatrix();
     glTranslatef(0.0f, 1.95f, 0.0f);
     glScalef(0.55f, 0.55f, 0.38f);
-    glutSolidCube(1.0);
+    desenharCuboTexturizado(); // Substituído
     glPopMatrix();
 
     // --- 2. MOSTRADOR CIRCULAR COM AS HORAS ---
