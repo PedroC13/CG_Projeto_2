@@ -127,10 +127,10 @@ void desenharLanternaNaMao() {
     glRotatef(12.0f, 0.0f, 1.0f, 0.0f);   // Inclina suavemente para o centro
     glScalef(0.35f, 0.35f, 0.35f);         // Reduz escala para proporção de mão
 
-    // Desabilita teste de profundidade para a lanterna não ser cortada por paredes próximas
-    glDisable(GL_DEPTH_TEST);
+    // Limpa só a profundidade: a lanterna não é cortada por paredes próximas,
+    // mas suas próprias peças continuam se escondendo corretamente
+    glClear(GL_DEPTH_BUFFER_BIT);
     desenharLanterna(0.0f, 0.0f, 0.0f, 0.0f);
-    glEnable(GL_DEPTH_TEST);
     glPopMatrix();
 }
 
@@ -169,14 +169,14 @@ void display() {
     float anguloPendulo = std::sin(tempo * 3.0f) * 15.0f;
     desenharRelogioPendulo(3.8f, 0.0f, -2.0f, -90.0f, anguloPendulo);
 
-    // 4. Renderiza a Lanterna na Mão do Vigia (Fixa na câmera)
-    desenharLanternaNaMao();
-
     // --- MEMBRO B ---
     desenharAltar(0.0f, 0.0f, -10.0f, 0.0f); // posição de teste; frente virada para a câmera
-    desenharCastical(-0.9f, 1.0f, -4.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
-    desenharCastical( 0.9f, 1.0f, -4.0f, true);
+    desenharCastical(-0.9f, 1.0f, -10.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
+    desenharCastical( 0.9f, 1.0f, -10.0f, true);
     desenharConfessionario(-4.0f, 0.0f, -13.0f, 90.0f); // posição de teste; frente virada para o centro
+
+    // 4. Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
+    desenharLanternaNaMao();
 
     glutSwapBuffers();
 }
