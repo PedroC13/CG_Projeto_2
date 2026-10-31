@@ -16,6 +16,55 @@ inline void desenharChao(GLint textura) {
 
 }
 
+// Adicione em src/render/ModelosMembroA.h
+inline void desenharParedes(GLuint textura) {
+    glBindTexture(GL_TEXTURE_2D, textura);
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor neutra para manter a textura original
+    glBegin(GL_QUADS);
+
+    // Parede Esquerda (X = -4.7f)
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 0.0f, -14.7f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(-4.7f, 0.0f, 4.7f);
+    glTexCoord2f(5.0f, 2.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
+    glTexCoord2f(0.0f, 2.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
+
+    // Parede Direita (X = 4.7f)
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(4.7f, 0.0f, 4.7f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(4.7f, 0.0f, -14.7f);
+    glTexCoord2f(5.0f, 2.0f); glVertex3f(4.7f, 7.0f, -14.7f);
+    glTexCoord2f(0.0f, 2.0f); glVertex3f(4.7f, 7.0f, 4.7f);
+
+    // Parede Frontal / Altar (Z = -14.7f)
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(4.7f, 0.0f, -14.7f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(-4.7f, 0.0f, -14.7f);
+    glTexCoord2f(3.0f, 2.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
+    glTexCoord2f(0.0f, 2.0f); glVertex3f(4.7f, 7.0f, -14.7f);
+
+    // Parede Traseira / Entrada (Z = 4.7f)
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 0.0f, 4.7f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(4.7f, 0.0f, 4.7f);
+    glTexCoord2f(3.0f, 2.0f); glVertex3f(4.7f, 7.0f, 4.7f);
+    glTexCoord2f(0.0f, 2.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
+
+    glEnd();
+}
+
+inline void desenharTeto(GLuint textura) {
+    glBindTexture(GL_TEXTURE_2D, textura);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, -1.0f, 0.0f); // Normal apontando para baixo
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(4.7f, 7.0f, 4.7f);
+    glTexCoord2f(5.0f, 5.0f); glVertex3f(4.7f, 7.0f, -14.7f);
+    glTexCoord2f(0.0f, 5.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
+    glEnd();
+}
+
 inline void peca(float x, float y, float z, float largura, float altura, float profundidade) {
 	glPushMatrix();
 

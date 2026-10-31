@@ -23,6 +23,8 @@ GLuint texMadeiraBanco = 0;
 GLuint texPedraAltar = 0; // Membro B - altar
 GLuint texMetalPorta = 0;
 GLuint texBranca = 0;
+GLuint texParede = 0;
+GLuint texTeto = 0;
 
 int tempo_anterior = 0;
 
@@ -42,6 +44,8 @@ void setup() {
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
 	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
     texMetalPorta = carregarTextura("assets/textures/metal.jpg");
+    texParede = carregarTextura("assets/textures/pedra.jpg"); // ou outra textura de parede
+    texTeto = carregarTextura("assets/textures/madeira.jpg"); // ou outra textura de teto
     texBranca = criarTexturaBranca();
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
@@ -135,6 +139,8 @@ void display() {
 	glUseProgram(shaderPrincipal); // Ativa o shader principal
     glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
 	desenharChao(texChao); // Desenha o chão com a textura carregada
+    desenharParedes(texParede);
+    desenharTeto(texTeto);
     desenharFileirasBancos(texMadeiraBanco); // desenha a fileira de bancos
     Porta& entrada = gerenciador.portas[0];   // porta da entrada principal (lógica do C)
     desenharPortasDuplas(entrada.posX, entrada.posY, entrada.posZ, entrada.rotInicialY,
