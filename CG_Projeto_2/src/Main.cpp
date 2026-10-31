@@ -21,6 +21,8 @@ GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texPedraAltar = 0; // Membro B - altar
+GLuint texMetalCastical = 0; // Membro B - castiçal
+GLuint texMadeiraConfessionario = 0; // Membro B - confessionário
 
 int tempo_anterior = 0;
 
@@ -42,6 +44,8 @@ void setup() {
 	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
 	texChao = carregarTextura("assets/textures/chao.jpg");
 	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
+	texMetalCastical = carregarTextura("assets/textures/metal.jpg"); // Membro B
+	texMadeiraConfessionario = carregarTextura("assets/textures/madeira.jpg"); // Membro B
     // ... configurações do OpenGL ...
 	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
@@ -127,6 +131,9 @@ void display() {
 
     // --- MEMBRO B ---
     desenharAltar(0.0f, 0.0f, -4.0f, 0.0f); // posição de teste; frente virada para a câmera
+    desenharCastical(-0.9f, 1.0f, -4.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
+    desenharCastical( 0.9f, 1.0f, -4.0f, true);
+    desenharConfessionario(-5.0f, 0.0f, -2.0f, 90.0f); // posição de teste; frente virada para o centro
 
     glutSwapBuffers();
 }
