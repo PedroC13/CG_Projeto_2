@@ -38,13 +38,8 @@ void setup() {
     texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
     texChao = carregarTextura("assets/textures/chao.jpg");
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
-
-    tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
-	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
-	texChao = carregarTextura("assets/textures/chao.jpg");
 	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
     // ... configurações do OpenGL ...
-	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
     glutSetCursor(GLUT_CURSOR_NONE);
 }
