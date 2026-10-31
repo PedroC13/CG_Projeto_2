@@ -5,6 +5,7 @@
 #include "scene/LogicMembroC.h"
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
+#include "render/ModelosMembroB.h"
 #include <iostream>
 #include <cstdlib>
 #include "player/CameraMembroA.h"
@@ -19,6 +20,7 @@ GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
+GLuint texPedraAltar = 0; // Membro B - altar
 
 int tempo_anterior = 0;
 
@@ -38,6 +40,11 @@ void setup() {
     texMadeiraBanco = carregarTextura("assets/textures/madeira.jpg");
 
     tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
+	texMolduraVitral = carregarTextura("assets/textures/pedra.jpg");
+	texChao = carregarTextura("assets/textures/chao.jpg");
+	texPedraAltar = carregarTextura("assets/textures/pedra.jpg"); // Membro B
+    // ... configurações do OpenGL ...
+	tempo_anterior = glutGet(GLUT_ELAPSED_TIME);
     gerenciador.inicializarCena();
     glutSetCursor(GLUT_CURSOR_NONE);
 }
@@ -152,6 +159,9 @@ void display() {
 
     // 4. Renderiza a Lanterna na Mão do Vigia (Fixa na câmera)
     desenharLanternaNaMao();
+
+    // --- MEMBRO B ---
+    desenharAltar(0.0f, 0.0f, -4.0f, 0.0f); // posição de teste; frente virada para a câmera
 
     glutSwapBuffers();
 }
