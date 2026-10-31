@@ -173,10 +173,10 @@ void display() {
     desenharLanternaNaMao();
 
     // --- MEMBRO B ---
-    desenharAltar(0.0f, 0.0f, -4.0f, 0.0f); // posição de teste; frente virada para a câmera
+    desenharAltar(0.0f, 0.0f, -10.0f, 0.0f); // posição de teste; frente virada para a câmera
     desenharCastical(-0.9f, 1.0f, -4.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
     desenharCastical( 0.9f, 1.0f, -4.0f, true);
-    desenharConfessionario(-5.0f, 0.0f, -2.0f, 90.0f); // posição de teste; frente virada para o centro
+    desenharConfessionario(-4.0f, 0.0f, -13.0f, 90.0f); // posição de teste; frente virada para o centro
 
     glutSwapBuffers();
 }
