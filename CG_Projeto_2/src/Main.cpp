@@ -157,13 +157,14 @@ void display() {
     Porta& entrada = gerenciador.portas[0];
     // Ajustei forçadamente a renderização da porta para o novo final da igreja Z = 9.4f
     desenharPortasDuplas(entrada.posX, entrada.posY, 9.4f, entrada.rotInicialY,
-        entrada.anguloAtual, texMadeiraBanco, texMetalPorta);
+        entrada.anguloAtual, texMadeiraBanco, texMetalPorta, texBranca);
     
+    // desenho de 4 lustes
     float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-    
-    // 2 Lustres no teto (O teto agora tem 10m de altura)
-    desenharLustre(0.0f, 9.8f, -4.0f, tempoSeg, texMetalPorta, texBranca);
-    desenharLustre(0.0f, 9.8f, -20.0f, tempoSeg, texMetalPorta, texBranca);
+    for (int i = 0; i < 4; ++i) {
+        float z = 4.55f - i * 9.7f;                    // 4,55 / -5,15 / -14,85 / -24,55
+        desenharLustre(0.0f, 9.8f, z, tempoSeg + i * 0.8f, 2.0f, texBranca);
+    }
     
     glUseProgram(0); // Volta ao pipeline fixo
 
