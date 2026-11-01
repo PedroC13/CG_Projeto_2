@@ -1,5 +1,6 @@
 #pragma once
-#include <GL/Glew.h>
+#include <GL/glew.h>
+#include <GL/freeglut.h>                // glutGet (tempo da tremulação das velas)
 #include "ShaderMembroA.h"            // reaproveita o compilarShader() do Membro A
 #include "../scene/LogicMembroC.h"    // struct Vela (posição e estado das velas)
 #include <iostream>

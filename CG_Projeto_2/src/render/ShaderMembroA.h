@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/Glew.h>
+#include <GL/glew.h>
 #include <iostream>
 
 //vertex shader roda uma vez por vértice
