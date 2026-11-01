@@ -3,6 +3,8 @@
 #include <cmath>
 #include "render/ModelosMembroC.h"
 #include "scene/LogicMembroC.h"
+#include "scene/LogicMembroB.h"
+#include "render/ShaderMembroB.h"
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
 #include "render/ModelosMembroB.h"
@@ -11,6 +13,7 @@
 #include "player/CameraMembroA.h"
 
 GerenciadorCena gerenciador;
+LogicaMembroB logicaB;
 
 GLuint texMostradorRelogio;
 GLuint texMadeiraRelogio;
@@ -18,6 +21,7 @@ GLuint texLanterna;
 GLuint texVitral;
 GLuint texMolduraVitral;
 GLuint shaderPrincipal = 0;
+GLuint shaderB = 0; // Membro B - Blinn-Phong da cena inteira
 GLuint texChao = 0;
 GLuint texMadeiraBanco = 0;
 GLuint texPedraAltar = 0; // Membro B - altar
@@ -36,6 +40,8 @@ void setup() {
     glewInit();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     shaderPrincipal = criarProgramaShader();
+    shaderB = criarProgramaShaderB(); // Membro B
+    configurarLuzesB();               // Membro B: cores e alcance das luzes
 
     texMadeiraRelogio = carregarTextura("assets/textures/madeira.jpg");
     texMostradorRelogio = carregarTextura("assets/textures/faceRelogio.png");
@@ -53,6 +59,7 @@ void setup() {
 	texMadeiraConfessionario = carregarTextura("assets/textures/madeira.jpg"); // Membro B
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
+    logicaB.inicializar();
     glutSetCursor(GLUT_CURSOR_NONE);
 }
 
@@ -62,6 +69,7 @@ void timer(int value) {
     tempo_anterior = tempo_atual;
 
     gerenciador.atualizar(deltaTime);
+    logicaB.atualizar(deltaTime);
 
     float posAntigaX = cameraX;
     float posAntigaZ = cameraZ;
@@ -111,7 +119,10 @@ void keyboard(unsigned char key, int x, int y) {
     }
 
     if (key == 'e' || key == 'E') {
-        gerenciador.interagir(cameraX, cameraY, cameraZ);
+        // Primeiro as portas do confessionário (B); se nenhuma estiver perto, o resto (C)
+        if (!logicaB.interagir(cameraX, cameraY, cameraZ)) {
+            gerenciador.interagir(cameraX, cameraY, cameraZ);
+        }
         glutPostRedisplay();
     }
 
@@ -143,31 +154,43 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
+    // --- LUZES (Membro B) ---
+    // Lanterna ANTES da câmera: fica presa ao olho e segue o olhar
+    posicionarLanternaB();
+
     // Posicionamento da Câmera
 	cameraAplicar();
-	glUseProgram(shaderPrincipal);
-    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);
 
+    // Luar e velas DEPOIS da câmera: ficam fixos no mundo
+    posicionarLuzesMundoB(gerenciador.velas);
+
+    // Shader Blinn-Phong ligado na CENA INTEIRA (até a lanterna na mão)
+    usarShaderB(shaderB, gerenciador.velas, gerenciador.lanternaLigada);
+
+    // Cada materialB(especular, brilho) vale para os objetos desenhados depois dele
+    materialB(0.10f, 8.0f);    // pedra e madeira do prédio: foscas
     desenharChao(texChao);
     desenharParedes(texParede);
     desenharTeto(texTeto);
     desenharCorredor(texParede, texChao, texTeto);
+
+    materialB(0.25f, 24.0f);   // madeira envernizada
     desenharGruposBancos(texMadeiraBanco);
 
+    materialB(0.30f, 32.0f);   // madeira + ferragens
     Porta& entrada = gerenciador.portas[0];
     // Ajustei forçadamente a renderização da porta para o novo final da igreja Z = 9.4f
     desenharPortasDuplas(entrada.posX, entrada.posY, 9.4f, entrada.rotInicialY,
         entrada.anguloAtual, texMadeiraBanco, texMetalPorta, texBranca);
     
     // desenho de 4 lustes
+    materialB(0.60f, 48.0f);   // metal dos lustres
     float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     for (int i = 0; i < 4; ++i) {
         float z = 4.55f - i * 9.7f;                    // 4,55 / -5,15 / -14,85 / -24,55
         desenharLustre(0.0f, 9.8f, z, tempoSeg + i * 0.8f, 2.0f, texBranca);
     }
     
-    glUseProgram(0); // Volta ao pipeline fixo
-
     if (modoWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
@@ -175,6 +198,7 @@ void display() {
     }
 
     // 8 Vitrais (4 na parede Esquerda, 4 na Direita)
+    materialB(0.90f, 96.0f);   // vidro: reflexo forte e concentrado
     float posicoesVitraisZ[] = { -4.0f, -11.0f, -18.0f, -25.0f };
     for (int i = 0; i < 4; i++) {
         // Colocados em 9.38f para evitar "z-fighting" com a textura da parede (9.4f)
@@ -186,6 +210,7 @@ void display() {
     tempo += 0.016f;
     float anguloPendulo = std::sin(tempo * 3.0f) * 15.0f;
     
+    materialB(0.30f, 32.0f);   // madeira + metal
     // 4 Relógios nos cantos, rotacionados para olhar para o centro da nave
     desenharRelogioPendulo(-8.8f, 0.0f,  8.8f,  90.0f, anguloPendulo);  // Atrás Esquerda (perto da porta)
     desenharRelogioPendulo( 8.8f, 0.0f,  8.8f, -90.0f, anguloPendulo);  // Atrás Direita (perto da porta)
@@ -193,12 +218,17 @@ void display() {
     desenharRelogioPendulo( 8.8f, 0.0f, -28.8f,-90.0f, anguloPendulo); // Frente Direita (perto do altar)
 
     // --- MEMBRO B ---
+    materialB(0.15f, 16.0f);   // pedra levemente polida
     desenharAltar(0.0f, 0.0f, -28.0f, 0.0f);
 
+    materialB(0.05f, 8.0f);    // madeira fosca
     // 1 Confessionário na parede esquerda, perto do altar, virado para a nave
-    desenharConfessionario(-8.8f, 0.0f, -21.0f, 90.0f);
+    // Portas abrem com E (mesma lógica da porta da entrada)
+    desenharConfessionario(-8.8f, 0.0f, -21.0f, 90.0f,
+        logicaB.portaConfEsq.anguloAtual, logicaB.portaConfDir.anguloAtual);
 
     // --- 6 Velas (Castiçais) ---
+    materialB(0.70f, 64.0f);   // bronze (a cera e a chama ajustam o próprio material)
     // 2 no tampo do Altar
     desenharCastical(-1.0f, 1.0f, -28.0f, gerenciador.velas[0].acesa);
     desenharCastical(1.0f, 1.0f, -28.0f, gerenciador.velas[1].acesa);
@@ -215,8 +245,10 @@ void display() {
 
     // Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
     // Não coloque nenhum objeto depois desta linha!
+    materialB(0.60f, 64.0f);   // metal da lanterna (o vidro é emissivo)
     desenharLanternaNaMao();
 
+    glUseProgram(0);
     glutSwapBuffers();
 }
 

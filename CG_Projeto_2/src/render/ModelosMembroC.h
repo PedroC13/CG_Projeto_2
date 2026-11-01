@@ -13,6 +13,7 @@ extern GLuint texMostradorRelogio;
 extern GLuint texLanterna;
 extern GLuint texVitral;
 extern GLuint texMolduraVitral;
+extern GLuint texBranca;   // Membro B: textura branca p/ peças só com cor (shader)
 
 // Função auxiliar para desenhar um cubo com coordenadas de textura UV em todas as faces
 inline void desenharCuboTexturizado(float tamanho) {
@@ -229,6 +230,7 @@ inline void desenharRelogioPendulo(float posX, float posY, float posZ, float rot
 
     // Borda metálica do mostrador
     glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texBranca); // Membro B: shader usa só a cor
     glColor3f(0.8f, 0.7f, 0.2f);
     glPushMatrix();
     glTranslatef(0.0f, 1.95f, 0.191f);
@@ -291,6 +293,7 @@ inline void desenharLanterna(float posX, float posY, float posZ, float rotY) {
 
     // --- 2. VIDRO / LÂMPADA (Sem textura de metal) ---
     glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texBranca); // Membro B: shader usa só a cor
 
     // Opcional: define uma cor levemente translúcida/amarelada para o vidro
     glColor4f(0.9f, 0.9f, 0.7f, 0.8f);
@@ -298,7 +301,15 @@ inline void desenharLanterna(float posX, float posY, float posZ, float rotY) {
     glPushMatrix();
     glTranslatef(0.0f, 0.05f, 0.0f);
     glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    {   // Membro B: vidro EMISSIVO (a lanterna brilha quando está na mão/ligada)
+        GLfloat emissaoVidro[] = { 1.0f, 0.92f, 0.65f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissaoVidro);
+    }
     glutSolidCylinder(0.07, 0.3, 16, 1);
+    {
+        GLfloat semEmissao[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, semEmissao);
+    }
     glPopMatrix();
 
     // --- 3. HASTES DE PROTEÇÃO (Com textura de metal) ---

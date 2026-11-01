@@ -8,6 +8,7 @@
 extern GLuint texPedraAltar;             // pedra.jpg
 extern GLuint texMetalCastical;          // metal.jpg
 extern GLuint texMadeiraConfessionario;  // madeira.jpg
+extern GLuint texBranca;                 // 1 pixel branco: peça só com cor (shader)
 
 // Desenha um cubo texturizado posicionado e escalado (uma "peça" do modelo)
 inline void desenharPeca(float x, float y, float z, float sx, float sy, float sz) {
@@ -31,19 +32,19 @@ inline void desenharAltar(float posX, float posY, float posZ, float rotY) {
     glBindTexture(GL_TEXTURE_2D, texPedraAltar);
 
     // Base
-    glColor4f(0.70f, 0.68f, 0.64f, 1.0f);
-    desenharPeca(0.0f, 0.075f, 0.0f, 2.4f, 0.15f, 1.1f);
+    glColor4f(0.50f, 0.50f, 0.50f, 1.0f);
+    desenharPeca(0.0f, 0.0f, 0.0f, 2.5f, 0.3f, 1.1f);
 
     // Corpo
     glColor4f(0.80f, 0.78f, 0.74f, 1.0f);
     desenharPeca(0.0f, 0.525f, 0.0f, 2.2f, 0.75f, 0.9f);
 
     // Tampo (pedra mais escura)
-    glColor4f(0.55f, 0.53f, 0.50f, 1.0f);
+    glColor4f(0.50f, 0.50f, 0.50f, 1.0f);
     desenharPeca(0.0f, 0.95f, 0.0f, 2.5f, 0.10f, 1.1f);
 
     // Cruz em relevo na frente
-    glColor4f(0.40f, 0.38f, 0.36f, 1.0f);
+    glColor4f(0.50f, 0.50f, 0.50f, 1.0f);
     desenharPeca(0.0f, 0.52f, 0.47f, 0.08f, 0.50f, 0.04f);  // haste
     desenharPeca(0.0f, 0.62f, 0.47f, 0.32f, 0.08f, 0.04f);  // braços
 
@@ -92,8 +93,12 @@ inline void desenharCastical(float posX, float posY, float posZ, bool acesa) {
     glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texBranca);  // shader: daqui pra frente só cor
 
-    // --- 2. VELA DE CERA ---
+    // --- 2. VELA DE CERA (fosca) ---
+    GLfloat ceraSpec[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, ceraSpec);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 8.0f);
     glColor4f(0.92f, 0.88f, 0.75f, 1.0f);
     glPushMatrix();
     glTranslatef(0.0f, 0.0f, 0.39f);
@@ -102,14 +107,19 @@ inline void desenharCastical(float posX, float posY, float posZ, bool acesa) {
     gluDisk(quad, 0.0, 0.035, 16, 1);
     glPopMatrix();
 
-    // --- 3. CHAMA (só quando acesa) ---
+    // --- 3. CHAMA (só quando acesa) - EMISSIVA: brilha sozinha ---
     if (acesa) {
+        GLfloat emissaoChama[] = { 1.0f, 0.6f, 0.2f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissaoChama);
         glColor4f(1.0f, 0.6f, 0.15f, 1.0f);
         glPushMatrix();
         glTranslatef(0.0f, 0.0f, 0.58f);
         glScalef(0.025f, 0.025f, 0.05f);  // gota alongada
         glutSolidSphere(1.0, 12, 10);
         glPopMatrix();
+
+        GLfloat semEmissao[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, semEmissao);  // não vazar o brilho
     }
 
     gluDeleteQuadric(quad);
@@ -120,9 +130,11 @@ inline void desenharCastical(float posX, float posY, float posZ, bool acesa) {
 // ============================================================================
 // 3. CONFESSIONÁRIO (Cabine com 3 compartimentos + Grade + Portas + Cortina)
 // Frente voltada para +Z. [ penitente | padre | penitente ]
-// anguloPortas: 0 = fechadas, 90 = abertas (padrão: entreabertas)
+// anguloPortaEsq / anguloPortaDir: 0 = fechada, 90 = aberta
+// (vêm do anguloAtual das Portas do GerenciadorCena, igual à porta da entrada)
 // ============================================================================
-inline void desenharConfessionario(float posX, float posY, float posZ, float rotY, float anguloPortas = 60.0f) {
+inline void desenharConfessionario(float posX, float posY, float posZ, float rotY,
+                                   float anguloPortaEsq = 0.0f, float anguloPortaDir = 0.0f) {
     glPushMatrix();
     glTranslatef(posX, posY, posZ);
     glRotatef(rotY, 0.0f, 1.0f, 0.0f);
@@ -154,9 +166,11 @@ inline void desenharConfessionario(float posX, float posY, float posZ, float rot
 
     // --- 3. PORTAS DOS PENITENTES (dobradiça na lateral, abrem para fora) ---
     for (int lado = -1; lado <= 1; lado += 2) {
+        float angulo = (lado < 0) ? anguloPortaEsq : anguloPortaDir;
+
         glPushMatrix();
         glTranslatef(lado * 1.22f, 0.0f, 0.45f);           // dobradiça na quina da lateral
-        glRotatef(lado * anguloPortas, 0.0f, 1.0f, 0.0f);   // gira para fora
+        glRotatef(lado * angulo, 0.0f, 1.0f, 0.0f);         // gira para fora
 
         glColor4f(0.60f, 0.45f, 0.35f, 1.0f);
         desenharPeca(-lado * 0.33f, 1.05f, 0.02f, 0.64f, 1.9f, 0.04f);   // folha da porta
@@ -169,6 +183,7 @@ inline void desenharConfessionario(float posX, float posY, float posZ, float rot
     glDisable(GL_TEXTURE_2D);
 
     // --- 4. CORTINA DO PADRE (tecido vinho) ---
+    glBindTexture(GL_TEXTURE_2D, texBranca);
     glColor4f(0.35f, 0.05f, 0.07f, 1.0f);
     desenharPeca(0.0f, 1.1f, 0.44f, 0.94f, 2.0f, 0.02f);
 

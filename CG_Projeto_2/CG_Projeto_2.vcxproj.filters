@@ -32,10 +32,16 @@
     <ClInclude Include="src\render\ModelosMembroC.h">
       <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
+    <ClInclude Include="src\render\ShaderMembroB.h">
+      <Filter>Arquivos de Cabeçalho\render</Filter>
+    </ClInclude>
     <ClInclude Include="src\render\Primitivas.h">
       <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\LogicMembroC.h">
+      <Filter>Arquivos de Cabeçalho\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\LogicMembroB.h">
       <Filter>Arquivos de Cabeçalho\scene</Filter>
     </ClInclude>
     <ClInclude Include="Textura.h">
