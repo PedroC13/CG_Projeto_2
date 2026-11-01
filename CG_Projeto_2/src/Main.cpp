@@ -110,6 +110,11 @@ void keyboard(unsigned char key, int x, int y) {
         glutPostRedisplay();
     }
 
+    if (key == 'e' || key == 'E') {
+        gerenciador.interagir(cameraX, cameraY, cameraZ);
+        glutPostRedisplay();
+    }
+
     if (key == 27) { // ESC para sair
         exit(0);
     }
@@ -140,43 +145,76 @@ void display() {
 
     // Posicionamento da Câmera
 	cameraAplicar();
-	glUseProgram(shaderPrincipal); // Ativa o shader principal
-    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);  // sampler lê a unidade 0
-	desenharChao(texChao); // Desenha o chão com a textura carregada
+	glUseProgram(shaderPrincipal);
+    glUniform1i(glGetUniformLocation(shaderPrincipal, "textura"), 0);
+
+    desenharChao(texChao);
     desenharParedes(texParede);
     desenharTeto(texTeto);
-    desenharFileirasBancos(texMadeiraBanco); // desenha a fileira de bancos
-    Porta& entrada = gerenciador.portas[0];   // porta da entrada principal (lógica do C)
-    desenharPortasDuplas(entrada.posX, entrada.posY, entrada.posZ, entrada.rotInicialY,
+    desenharCorredor(texParede, texChao, texTeto);
+    desenharGruposBancos(texMadeiraBanco);
+
+    Porta& entrada = gerenciador.portas[0];
+    // Ajustei forçadamente a renderização da porta para o novo final da igreja Z = 9.4f
+    desenharPortasDuplas(entrada.posX, entrada.posY, 9.4f, entrada.rotInicialY,
         entrada.anguloAtual, texMadeiraBanco, texMetalPorta);
-    float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;            // segundos desde o início
-    desenharLustre(0.0f, 6.0f, -4.0f, tempoSeg, texMetalPorta, texBranca);  // preso a 6 m de altura
-    glUseProgram(0);   // volta ao pipeline fixo para os objetos do C
+    
+    float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    
+    // 2 Lustres no teto (O teto agora tem 10m de altura)
+    desenharLustre(0.0f, 9.8f, -4.0f, tempoSeg, texMetalPorta, texBranca);
+    desenharLustre(0.0f, 9.8f, -20.0f, tempoSeg, texMetalPorta, texBranca);
+    
+    glUseProgram(0); // Volta ao pipeline fixo
 
     if (modoWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else {
+    } else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    // 3. Renderiza Objetos do Mundo (Vitrais e Relógio)
-    desenharVitral(-4.8f, 1.5f, -2.0f, 90.0f);
-    desenharVitral(4.8f, 1.5f, -6.0f, -90.0f);
+    // 8 Vitrais (4 na parede Esquerda, 4 na Direita)
+    float posicoesVitraisZ[] = { -4.0f, -11.0f, -18.0f, -25.0f };
+    for (int i = 0; i < 4; i++) {
+        // Colocados em 9.38f para evitar "z-fighting" com a textura da parede (9.4f)
+        desenharVitral(-9.38f, 1.5f, posicoesVitraisZ[i], 90.0f);
+        desenharVitral( 9.38f, 1.5f, posicoesVitraisZ[i], -90.0f);
+    }
 
     static float tempo = 0.0f;
     tempo += 0.016f;
     float anguloPendulo = std::sin(tempo * 3.0f) * 15.0f;
-    desenharRelogioPendulo(3.8f, 0.0f, -2.0f, -90.0f, anguloPendulo);
+    
+    // 4 Relógios nos cantos, rotacionados para olhar para o centro da nave
+    desenharRelogioPendulo(-8.8f, 0.0f,  8.8f,  90.0f, anguloPendulo);  // Atrás Esquerda (perto da porta)
+    desenharRelogioPendulo( 8.8f, 0.0f,  8.8f, -90.0f, anguloPendulo);  // Atrás Direita (perto da porta)
+    desenharRelogioPendulo(-8.8f, 0.0f, -28.8f, 90.0f, anguloPendulo); // Frente Esquerda (perto do altar)
+    desenharRelogioPendulo( 8.8f, 0.0f, -28.8f,-90.0f, anguloPendulo); // Frente Direita (perto do altar)
+
+    // Renderiza a Lanterna na Mão do Vigia
+    desenharLanternaNaMao();
 
     // --- MEMBRO B ---
-    desenharAltar(0.0f, 0.0f, -10.0f, 0.0f); // posição de teste; frente virada para a câmera
-    desenharCastical(-0.9f, 1.0f, -10.0f, true);  // castiçais em cima do tampo do altar (y = 1.0)
-    desenharCastical( 0.9f, 1.0f, -10.0f, true);
-    desenharConfessionario(-4.0f, 0.0f, -13.0f, 90.0f); // posição de teste; frente virada para o centro
+    // --- MEMBRO B ---
+    desenharAltar(0.0f, 0.0f, -28.0f, 0.0f);
 
-    // 4. Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
-    desenharLanternaNaMao();
+    // 1 Confessionário na parede esquerda, perto do altar, virado para a nave
+    desenharConfessionario(-8.8f, 0.0f, -21.0f, 90.0f);
+
+    // --- 6 Velas (Castiçais) ---
+    // 2 no tampo do Altar
+    desenharCastical(-1.0f, 1.0f, -28.0f, gerenciador.velas[0].acesa);
+    desenharCastical(1.0f, 1.0f, -28.0f, gerenciador.velas[1].acesa);
+
+    // 2 em cima de Bancos diferentes
+    desenharCastical(-2.0f, 0.47f, 4.0f, gerenciador.velas[2].acesa);
+    desenharCastical(2.0f, 0.47f, 1.0f, gerenciador.velas[3].acesa);
+
+    // 1 no chão perto do confessionário
+    desenharCastical(-6.0f, 0.0f, -20.0f, gerenciador.velas[4].acesa);
+
+    // 1 no chão perto do relógio frontal esquerdo
+    desenharCastical(-7.5f, 0.0f, -27.5f, gerenciador.velas[5].acesa);
 
     glutSwapBuffers();
 }

@@ -3,52 +3,109 @@
 #include <render/ModelosMembroC.h>
 
 inline void desenharChao(GLint textura) {
-	glBindTexture(GL_TEXTURE_2D, textura);
-	glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não alterar a textura)
+    glBindTexture(GL_TEXTURE_2D, textura);
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não alterar a textura
 
-	glBegin(GL_QUADS);
-		glNormal3f(0.0f, 1.0f, 0.0f); // Normal apontando para cima
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f, -10.0f);
-		glTexCoord2f(5.0f, 0.0f); glVertex3f(10.0f, 0.0f, -10.0f);
-		glTexCoord2f(5.0f, 5.0f); glVertex3f(10.0f, 0.0f, 10.0f);
-		glTexCoord2f(0.0f, 5.0f); glVertex3f(-10.0f, 0.0f, 10.0f);
-	glEnd();
-
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, 1.0f, 0.0f); // Normal apontando para cima
+        // Coordenadas UV dobradas para a textura não esticar
+        glTexCoord2f(0.0f, 0.0f);   glVertex3f(-9.4f, 0.0f, -29.4f);
+        glTexCoord2f(10.0f, 0.0f);  glVertex3f( 9.4f, 0.0f, -29.4f);
+        glTexCoord2f(10.0f, 10.0f); glVertex3f( 9.4f, 0.0f,  9.4f);
+        glTexCoord2f(0.0f, 10.0f);  glVertex3f(-9.4f, 0.0f,  9.4f);
+    glEnd();
 }
 
-// Adicione em src/render/ModelosMembroA.h
 inline void desenharParedes(GLuint textura) {
     glBindTexture(GL_TEXTURE_2D, textura);
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor neutra para manter a textura original
+    glColor3f(1.0f, 1.0f, 1.0f); 
     glBegin(GL_QUADS);
 
-    // Parede Esquerda (X = -4.7f)
+    // Parede Esquerda (X = -9.4f)
     glNormal3f(1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 0.0f, -14.7f);
-    glTexCoord2f(5.0f, 0.0f); glVertex3f(-4.7f, 0.0f, 4.7f);
-    glTexCoord2f(5.0f, 2.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
-    glTexCoord2f(0.0f, 2.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-9.4f, 0.0f, -29.4f);
+    glTexCoord2f(10.0f, 0.0f); glVertex3f(-9.4f, 0.0f,  9.4f);
+    glTexCoord2f(10.0f, 3.0f); glVertex3f(-9.4f, 10.0f, 9.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-9.4f, 10.0f, -29.4f);
 
-    // Parede Direita (X = 4.7f)
+    // Parede Direita (X = 9.4f)
     glNormal3f(-1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(4.7f, 0.0f, 4.7f);
-    glTexCoord2f(5.0f, 0.0f); glVertex3f(4.7f, 0.0f, -14.7f);
-    glTexCoord2f(5.0f, 2.0f); glVertex3f(4.7f, 7.0f, -14.7f);
-    glTexCoord2f(0.0f, 2.0f); glVertex3f(4.7f, 7.0f, 4.7f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 9.4f, 0.0f,  9.4f);
+    glTexCoord2f(10.0f, 0.0f); glVertex3f( 9.4f, 0.0f, -29.4f);
+    glTexCoord2f(10.0f, 3.0f); glVertex3f( 9.4f, 10.0f, -29.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f( 9.4f, 10.0f,  9.4f);
 
-    // Parede Frontal / Altar (Z = -14.7f)
+    // Parede Frontal / Altar (Z = -29.4f)
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(4.7f, 0.0f, -14.7f);
-    glTexCoord2f(3.0f, 0.0f); glVertex3f(-4.7f, 0.0f, -14.7f);
-    glTexCoord2f(3.0f, 2.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
-    glTexCoord2f(0.0f, 2.0f); glVertex3f(4.7f, 7.0f, -14.7f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 9.4f, 0.0f, -29.4f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(-9.4f, 0.0f, -29.4f);
+    glTexCoord2f(5.0f, 3.0f); glVertex3f(-9.4f, 10.0f, -29.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f( 9.4f, 10.0f, -29.4f);
 
-    // Parede Traseira / Entrada (Z = 4.7f)
+    // Parede Traseira / Entrada (Z = 9.4f)
+   // Parede Traseira / Entrada (Z = 9.4f) COM BURACO PARA A PORTA
     glNormal3f(0.0f, 0.0f, -1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 0.0f, 4.7f);
-    glTexCoord2f(3.0f, 0.0f); glVertex3f(4.7f, 0.0f, 4.7f);
-    glTexCoord2f(3.0f, 2.0f); glVertex3f(4.7f, 7.0f, 4.7f);
-    glTexCoord2f(0.0f, 2.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
+
+    // Pedaço Esquerdo (-9.4 até -1.2)
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-9.4f, 0.0f, 9.4f);
+    glTexCoord2f(2.2f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(2.2f, 3.0f); glVertex3f(-1.2f, 10.0f, 9.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-9.4f, 10.0f, 9.4f);
+
+    // Pedaço Direito (1.2 até 9.4)
+    glTexCoord2f(2.8f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f(9.4f, 0.0f, 9.4f);
+    glTexCoord2f(5.0f, 3.0f); glVertex3f(9.4f, 10.0f, 9.4f);
+    glTexCoord2f(2.8f, 3.0f); glVertex3f(1.2f, 10.0f, 9.4f);
+
+    // Pedaço Superior (acima da porta, Y = 3.1 até 10.0)
+    glTexCoord2f(2.2f, 0.93f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glTexCoord2f(2.8f, 0.93f); glVertex3f(1.2f, 3.1f, 9.4f);
+    glTexCoord2f(2.8f, 3.00f); glVertex3f(1.2f, 10.0f, 9.4f);
+    glTexCoord2f(2.2f, 3.00f); glVertex3f(-1.2f, 10.0f, 9.4f);
+
+    glEnd();
+}
+
+inline void desenharCorredor(GLuint texParede, GLuint texChao, GLuint texTeto) {
+    // Chão do corredor (Avançando 10 metros para trás: Z de 9.4f até 19.4f)
+    glBindTexture(GL_TEXTURE_2D, texChao);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(1.0f, 3.0f); glVertex3f(1.2f, 0.0f, 19.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-1.2f, 0.0f, 19.4f);
+    glEnd();
+
+    // Teto do corredor (Y = 3.1f)
+    glBindTexture(GL_TEXTURE_2D, texTeto);
+    glBegin(GL_QUADS);
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 3.1f, 19.4f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(1.2f, 3.1f, 19.4f);
+    glTexCoord2f(1.0f, 3.0f); glVertex3f(1.2f, 3.1f, 9.4f);
+    glTexCoord2f(0.0f, 3.0f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glEnd();
+
+    // Paredes Laterais do corredor
+    glBindTexture(GL_TEXTURE_2D, texParede);
+    glBegin(GL_QUADS);
+
+    // Parede Esquerda (X = -1.2f)
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 19.4f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(-1.2f, 0.0f, 9.4f);
+    glTexCoord2f(3.0f, 1.0f); glVertex3f(-1.2f, 3.1f, 9.4f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.2f, 3.1f, 19.4f);
+
+    // Parede Direita (X = 1.2f)
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(1.2f, 0.0f, 9.4f);
+    glTexCoord2f(3.0f, 0.0f); glVertex3f(1.2f, 0.0f, 19.4f);
+    glTexCoord2f(3.0f, 1.0f); glVertex3f(1.2f, 3.1f, 19.4f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(1.2f, 3.1f, 9.4f);
 
     glEnd();
 }
@@ -57,13 +114,14 @@ inline void desenharTeto(GLuint textura) {
     glBindTexture(GL_TEXTURE_2D, textura);
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
-    glNormal3f(0.0f, -1.0f, 0.0f); // Normal apontando para baixo
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-4.7f, 7.0f, 4.7f);
-    glTexCoord2f(5.0f, 0.0f); glVertex3f(4.7f, 7.0f, 4.7f);
-    glTexCoord2f(5.0f, 5.0f); glVertex3f(4.7f, 7.0f, -14.7f);
-    glTexCoord2f(0.0f, 5.0f); glVertex3f(-4.7f, 7.0f, -14.7f);
+    glNormal3f(0.0f, -1.0f, 0.0f); 
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-9.4f, 10.0f,  9.4f);
+    glTexCoord2f(5.0f, 0.0f); glVertex3f( 9.4f, 10.0f,  9.4f);
+    glTexCoord2f(5.0f, 10.0f); glVertex3f( 9.4f, 10.0f, -29.4f);
+    glTexCoord2f(0.0f, 10.0f); glVertex3f(-9.4f, 10.0f, -29.4f);
     glEnd();
 }
+
 
 inline void peca(float x, float y, float z, float largura, float altura, float profundidade) {
 	glPushMatrix();
@@ -102,14 +160,25 @@ inline void desenharBanco(float posX, float posY, float posZ, float rotY, GLuint
 
 }
 
-// Duas colunas de bancos, com um corredor no meio
-inline void desenharFileirasBancos(GLuint textura) {
-	for (int i = 0; i < 5; ++i) {
-		float z = -1.5f - i * 1.3f;                 // uma fileira a cada 1,3 m
-		desenharBanco(-1.5f, 0.0f, z, 0.0f, textura);   // lado esquerdo
-		desenharBanco(1.5f, 0.0f, z, 0.0f, textura);   // lado direito
-	}
+inline void desenharGruposBancos(GLuint textura) {
+    int profundidadeLinhas = 8; // Quantidade de linhas em direção ao altar
+
+    for (int i = 0; i < profundidadeLinhas; ++i) {
+        // Começa em Z = 4.0f (perto da porta) e avança para o fundo a cada 3.0 metros
+        float z = 4.0f - (i * 3.0f);
+
+        // 3 Bancos juntos à esquerda (Centros: -2.0, -4.0, -6.0)
+        desenharBanco(-2.0f, 0.0f, z, 0.0f, textura);
+        desenharBanco(-4.0f, 0.0f, z, 0.0f, textura);
+        desenharBanco(-6.0f, 0.0f, z, 0.0f, textura);
+
+        // 3 Bancos juntos à direita (Centros: 2.0, 4.0, 6.0)
+        desenharBanco(2.0f, 0.0f, z, 0.0f, textura);
+        desenharBanco(4.0f, 0.0f, z, 0.0f, textura);
+        desenharBanco(6.0f, 0.0f, z, 0.0f, textura);
+    }
 }
+
 
 // Uma folha da porta, desenhada a partir da dobradiça (origem local).
 // lado = +1: a folha sai para +X (folha esquerda); lado = -1: sai para -X (folha direita)
