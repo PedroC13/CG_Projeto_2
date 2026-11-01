@@ -133,31 +133,45 @@ inline void peca(float x, float y, float z, float largura, float altura, float p
 	glPopMatrix();	
 }
 
-inline void desenharBanco(float posX, float posY, float posZ, float rotY, GLuint textura) {
-	glBindTexture(GL_TEXTURE_2D, textura);
+// Banco de igreja de comprimento qualquer. Frente voltada para -Z (o altar).
+inline void desenharBanco(float posX, float posY, float posZ, float rotY,
+    float comprimento, GLuint textura) {
+    float C = comprimento;
+    float meio = C / 2.0f;
 
-	glColor3f(0.75f, 0.55f, 0.4f);
+    glBindTexture(GL_TEXTURE_2D, textura);
+    glColor3f(0.75f, 0.55f, 0.4f);                   // madeira escurecida
 
-	glColor3f(0.75f, 0.55f, 0.4f);                  // tinge a madeira para um tom mais escuro
+    glPushMatrix();
+    glTranslatef(posX, posY, posZ);                  // banco inteiro na cena
+    glRotatef(rotY, 0.0f, 1.0f, 0.0f);
 
-	glPushMatrix();
-	glTranslatef(posX, posY, posZ);                 // posição do banco inteiro na cena
-	glRotatef(rotY, 0.0f, 1.0f, 0.0f);
+    peca(0.0f, 0.45f, 0.0f, C, 0.05f, 0.40f);       // assento contínuo
+    peca(0.0f, 0.12f, 0.0f, C - 0.10f, 0.05f, 0.05f); // travessa de baixo
 
-	peca(0.0f, 0.45f, 0.0f, 2.0f, 0.05f, 0.40f);   // assento
-	peca(-0.98f, 0.35f, 0.02f, 0.05f, 0.70f, 0.45f);  // lateral esquerda
-	peca(0.98f, 0.35f, 0.02f, 0.05f, 0.70f, 0.45f);  // lateral direita
-	peca(0.0f, 0.12f, 0.0f, 1.90f, 0.05f, 0.05f);  // travessa de baixo
+    // Laterais só nas pontas
+    peca(-meio + 0.025f, 0.35f, 0.02f, 0.05f, 0.70f, 0.45f);
+    peca(meio - 0.025f, 0.35f, 0.02f, 0.05f, 0.70f, 0.45f);
 
-	// Encosto: gira 10° em torno da sua borda de baixo
-	glPushMatrix();
-	glTranslatef(0.0f, 0.475f, 0.18f);              // vai até a dobra (borda de trás do assento)
-	glRotatef(10.0f, 1.0f, 0.0f, 0.0f);             // inclina para trás (+Z)
-	peca(0.0f, 0.275f, 0.0f, 1.95f, 0.55f, 0.04f); // sobe metade da altura
-	glPopMatrix();
+    // Apoios intermediários: um a cada ~2 m
+    int n = (int)(C / 2.0f) - 1;                     // 6 m → 2 apoios
+    for (int k = 1; k <= n; ++k) {
+        float x = -meio + k * C / (n + 1);           // divide o comprimento em partes iguais
+        peca(x, 0.22f, 0.02f, 0.04f, 0.44f, 0.35f);
+    }
 
-	glPopMatrix();
+    // Encosto: gira 10° em torno da borda de baixo
+    glPushMatrix();
+    glTranslatef(0.0f, 0.475f, 0.18f);               // pivô na dobra
+    glRotatef(10.0f, 1.0f, 0.0f, 0.0f);              // inclina para trás
+    peca(0.0f, 0.275f, 0.0f, C - 0.05f, 0.55f, 0.04f);
 
+    // Porta-livros: preso no ENCOSTO, herda a inclinação dele (encadeado)
+    peca(0.0f, 0.30f, 0.07f, C - 0.10f, 0.03f, 0.10f); // prateleira atrás do encosto
+    peca(0.0f, 0.34f, 0.115f, C - 0.10f, 0.08f, 0.01f); // borda que segura os livros
+    glPopMatrix();
+
+    glPopMatrix();
 }
 
 inline void desenharGruposBancos(GLuint textura) {
@@ -167,68 +181,116 @@ inline void desenharGruposBancos(GLuint textura) {
         // Começa em Z = 4.0f (perto da porta) e avança para o fundo a cada 3.0 metros
         float z = 4.0f - (i * 3.0f);
 
-        // 3 Bancos juntos à esquerda (Centros: -2.0, -4.0, -6.0)
-        desenharBanco(-2.0f, 0.0f, z, 0.0f, textura);
-        desenharBanco(-4.0f, 0.0f, z, 0.0f, textura);
-        desenharBanco(-6.0f, 0.0f, z, 0.0f, textura);
-
-        // 3 Bancos juntos à direita (Centros: 2.0, 4.0, 6.0)
-        desenharBanco(2.0f, 0.0f, z, 0.0f, textura);
-        desenharBanco(4.0f, 0.0f, z, 0.0f, textura);
-        desenharBanco(6.0f, 0.0f, z, 0.0f, textura);
+        desenharBanco(-4.0f, 0.0f, z, 0.0f, 6.0f, textura);   // grupo esquerdo: x de -7 a -1
+        desenharBanco(4.0f, 0.0f, z, 0.0f, 6.0f, textura);   // grupo direito:  x de  1 a  7
     }
 }
 
 
 // Uma folha da porta, desenhada a partir da dobradiça (origem local).
-// lado = +1: a folha sai para +X (folha esquerda); lado = -1: sai para -X (folha direita)
-inline void folhaPorta(float lado, GLuint texMadeira, GLuint texMetal) {
-    float l = lado;   // só para encurtar
+// lado = +1: sai para +X (folha esquerda); lado = -1: sai para -X (direita).
+// +Z = lado de FORA da igreja; -Z = lado de DENTRO.
+inline void folhaPorta(float lado, GLuint texMadeira, GLuint texMetal, GLuint texBranca) {
+    float l = lado;
+    const float PI = 3.14159265f;
 
-    // Madeira: placa principal + 2 almofadas em relevo (dos dois lados)
+    // --- 5 pranchas verticais, tons alternados ---
     glBindTexture(GL_TEXTURE_2D, texMadeira);
-    glColor3f(0.55f, 0.35f, 0.25f);
-    peca(l * 0.50f, 1.40f, 0.0f, 1.00f, 2.80f, 0.08f);   // placa (centro a meia largura da dobradiça)
-    glColor3f(0.45f, 0.28f, 0.2f);
-    peca(l * 0.50f, 0.80f, 0.0f, 0.70f, 0.90f, 0.12f);   // almofada de baixo
-    peca(l * 0.50f, 2.00f, 0.0f, 0.70f, 1.00f, 0.12f);   // almofada de cima
+    for (int p = 0; p < 5; ++p) {
+        if (p % 2 == 0) glColor3f(0.50f, 0.32f, 0.22f);
+        else            glColor3f(0.43f, 0.27f, 0.18f);
+        float x = l * (0.10f + p * 0.20f);                 // centro da prancha p
+        peca(x, 1.40f, 0.0f, 0.195f, 2.80f, 0.06f);       // fresta de 5 mm entre pranchas
+    }
 
-    // Metal: 3 dobradiças na borda da dobradiça + maçaneta perto do centro
+    // --- Estrutura em "Z" no lado de dentro: 2 travessas + diagonal ---
+    glColor3f(0.38f, 0.24f, 0.16f);
+    peca(l * 0.50f, 0.45f, -0.05f, 0.90f, 0.15f, 0.04f);  // travessa de baixo
+    peca(l * 0.50f, 2.35f, -0.05f, 0.90f, 0.15f, 0.04f);  // travessa de cima
+
+    float dx = l * 0.76f, dy = 1.76f;                      // de (0,12; 0,52) a (0,88; 2,28)
+    float comp = std::sqrt(dx * dx + dy * dy);             // ≈ 1,92 m
+    float ang = std::atan2(dy, dx) * 180.0f / PI;         // ≈ 66,6° (ou 113,4° espelhado)
+    glPushMatrix();
+    glTranslatef(l * 0.50f, 1.40f, -0.05f);                // centro da diagonal
+    glRotatef(ang, 0.0f, 0.0f, 1.0f);                      // deita a peça na direção certa
+    peca(0.0f, 0.0f, 0.0f, comp, 0.12f, 0.04f);           // comprimento ao longo de X
+    glPopMatrix();
+
+    // --- Ferragens longas no lado de fora ---
     glBindTexture(GL_TEXTURE_2D, texMetal);
-    glColor3f(0.6f, 0.6f, 0.6f);
-    peca(l * 0.03f, 0.40f, 0.0f, 0.06f, 0.20f, 0.10f);   // dobradiça de baixo
-    peca(l * 0.03f, 1.40f, 0.0f, 0.06f, 0.20f, 0.10f);   // dobradiça do meio
-    peca(l * 0.03f, 2.40f, 0.0f, 0.06f, 0.20f, 0.10f);   // dobradiça de cima
-    peca(l * 0.90f, 1.10f, -0.08f, 0.05f, 0.25f, 0.05f);   // maçaneta (lado de dentro, -Z)
-    peca(l * 0.90f, 1.10f, 0.08f, 0.05f, 0.25f, 0.05f);   // maçaneta (lado de fora, +Z)
+    glColor3f(0.25f, 0.25f, 0.25f);                        // ferro escuro
+    peca(l * 0.40f, 0.45f, 0.04f, 0.75f, 0.07f, 0.015f);
+    peca(l * 0.40f, 2.35f, 0.04f, 0.75f, 0.07f, 0.015f);
+
+    // --- Peças do GLUT (sem UV): textura branca + cor ---
+    glBindTexture(GL_TEXTURE_2D, texBranca);
+    glColor3f(0.2f, 0.2f, 0.2f);
+
+    // Dobradiças: cilindros em pé na borda da dobradiça
+    for (float y : { 0.45f, 2.35f }) {
+        glPushMatrix();
+        glTranslatef(0.0f, y - 0.10f, 0.04f);
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);               // +Z → +Y
+        glutSolidCylinder(0.025, 0.20, 10, 1);
+        glPopMatrix();
+    }
+
+    // Aldrava (lado de fora): anel + pino de fixação
+    glPushMatrix();
+    glTranslatef(l * 0.85f, 1.25f, 0.06f);
+    glutSolidTorus(0.012, 0.07, 8, 20);                    // anel em pé, virado para fora
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(l * 0.85f, 1.32f, 0.04f);
+    glutSolidSphere(0.025, 10, 8);
+    glPopMatrix();
+
+    // Puxador (lado de dentro): barra vertical + 2 suportes, todos cilindros
+    glPushMatrix();
+    glTranslatef(l * 0.85f, 1.00f, -0.09f);
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);                   // barra em pé
+    glutSolidCylinder(0.015, 0.30, 10, 1);
+    glPopMatrix();
+    for (float y : { 1.03f, 1.27f }) {
+        glPushMatrix();
+        glTranslatef(l * 0.85f, y, -0.03f);
+        glRotatef(180.0f, 0.0f, 1.0f, 0.0f);               // +Z → -Z (para dentro)
+        glutSolidCylinder(0.01, 0.06, 8, 1);
+        glPopMatrix();
+    }
 }
 
-// Portas duplas da entrada, com batente. angulo: 0 = fechada, 90 = aberta para -Z
-inline void desenharPortasDuplas(float posX, float posY, float posZ, float rotY,
-    float angulo, GLuint texMadeira, GLuint texMetal) {
+// Portas duplas da entrada, com batente. angulo vem do C: 0 = fechada, 90 = aberta (-Z)
+inline void desenharPortasDuplas(float posX, float posY, float posZ, float rotY, float angulo,
+    GLuint texMadeira, GLuint texMetal, GLuint texBranca) {
+    // Abertura suave (smoothstep): só muda COMO o ângulo do C aparece
+    float t = angulo / 90.0f;
+    angulo = 90.0f * t * t * (3.0f - 2.0f * t);
+
     glPushMatrix();
     glTranslatef(posX, posY, posZ);
     glRotatef(rotY, 0.0f, 1.0f, 0.0f);
 
-    // Batente (fixo): duas colunas + verga em cima
+    // Batente fixo: duas colunas + verga
     glBindTexture(GL_TEXTURE_2D, texMadeira);
-    glColor3f(0.35f, 0.22f, 0.15f);
-    peca(-1.10f, 1.45f, 0.0f, 0.20f, 2.90f, 0.25f);   // coluna esquerda
-    peca(1.10f, 1.45f, 0.0f, 0.20f, 2.90f, 0.25f);   // coluna direita
-    peca(0.00f, 2.95f, 0.0f, 2.40f, 0.20f, 0.25f);   // verga
+    glColor3f(0.30f, 0.19f, 0.13f);
+    peca(-1.10f, 1.45f, 0.0f, 0.20f, 2.90f, 0.25f);
+    peca(1.10f, 1.45f, 0.0f, 0.20f, 2.90f, 0.25f);
+    peca(0.00f, 2.95f, 0.0f, 2.40f, 0.20f, 0.25f);
 
     // Folha esquerda: dobradiça em x = -1, gira +angulo
     glPushMatrix();
-    glTranslatef(-1.0f, 0.0f, 0.0f);          // 1. vai até a dobradiça
-    glRotatef(angulo, 0.0f, 1.0f, 0.0f);      // 2. gira em torno dela
-    folhaPorta(+1.0f, texMadeira, texMetal);  // 3. folha sai para +X
+    glTranslatef(-1.0f, 0.0f, 0.0f);
+    glRotatef(angulo, 0.0f, 1.0f, 0.0f);
+    folhaPorta(+1.0f, texMadeira, texMetal, texBranca);
     glPopMatrix();
 
     // Folha direita: dobradiça em x = +1, gira -angulo (espelhada)
     glPushMatrix();
     glTranslatef(1.0f, 0.0f, 0.0f);
     glRotatef(-angulo, 0.0f, 1.0f, 0.0f);
-    folhaPorta(-1.0f, texMadeira, texMetal);  // folha sai para -X
+    folhaPorta(-1.0f, texMadeira, texMetal, texBranca);
     glPopMatrix();
 
     glPopMatrix();
@@ -247,54 +309,87 @@ inline GLuint criarTexturaBranca() {
 }
 
 // Lustre pendente: (posX, posY, posZ) é o ponto de fixação no TETO.
-// tempo em segundos, para o balanço.
-inline void desenharLustre(float posX, float posY, float posZ, float tempo,
-    GLuint texMetal, GLuint texBranca) {
-    const int   N = 8;          // braços, segmentos do aro e velas
-    const float R = 0.6f;       // raio do aro (m)
+// tempo em segundos (balanço); escala: 1 = tamanho base, 2 = dobro.
+inline void desenharLustre(float posX, float posY, float posZ, float tempo, float escala,
+    GLuint texBranca) {
+    const int   N = 8;            // braços, segmentos do aro e velas
+    const float R = 0.6f;         // raio do aro no tamanho base (m)
     const float PI = 3.14159265f;
+    const float yAro = -1.7f;     // altura do aro abaixo do teto (tamanho base)
+
+    glBindTexture(GL_TEXTURE_2D, texBranca);    // formas do GLUT não têm UV: só cor
 
     glPushMatrix();
-    glTranslatef(posX, posY, posZ);                   // ponto fixo no teto
+    glTranslatef(posX, posY, posZ);             // ponto fixo no teto
 
-    // BALANÇO: um único giro no topo move TODA a árvore abaixo
-    float balanco = 3.0f * std::sin(1.2f * tempo);    // θ = A·sen(ωt), em graus
-    glRotatef(balanco, 0.0f, 0.0f, 1.0f);
+    float balanco = 3.0f * std::sin(1.2f * tempo);   // θ = A·sen(ωt)
+    glRotatef(balanco, 0.0f, 0.0f, 1.0f);            // 1 giro move a árvore toda
+    glScalef(escala, escala, escala);                // 1 escala dobra a árvore toda
 
-    // --- Corrente: 6 elos de 30 cm, alternando a orientação ---
-    glBindTexture(GL_TEXTURE_2D, texMetal);
-    glColor3f(0.45f, 0.4f, 0.3f);                     // metal escuro, envelhecido
-    for (int k = 0; k < 6; ++k) {
+    // --- Corrente: 7 elos em anel, alternando 90°, encaixados ---
+    glColor3f(0.35f, 0.3f, 0.22f);                   // ferro envelhecido
+    for (int k = 0; k < 7; ++k) {
         glPushMatrix();
-        glTranslatef(0.0f, -0.15f - k * 0.3f, 0.0f);  // centro do elo k
-        glRotatef(k * 90.0f, 0.0f, 1.0f, 0.0f);       // elos alternam 90°, como numa corrente real
-        peca(0.0f, 0.0f, 0.0f, 0.08f, 0.28f, 0.02f);
+        glTranslatef(0.0f, -0.11f - k * 0.22f, 0.0f);    // um elo a cada 22 cm
+        glRotatef(k * 90.0f, 0.0f, 1.0f, 0.0f);          // alterna a orientação
+        glScalef(1.0f, 1.6f, 1.0f);                      // elo oval (mais alto que largo)
+        glutSolidTorus(0.015, 0.07, 8, 16);              // tubo de 1,5 cm, raio de 7 cm
         glPopMatrix();
     }
 
-    // Tudo abaixo fica preso ao fim da corrente (1,8 m abaixo do teto)
-    glTranslatef(0.0f, -1.8f, 0.0f);
-    peca(0.0f, -0.08f, 0.0f, 0.18f, 0.16f, 0.18f);   // cubo central
+    // Tudo abaixo fica preso ao fim da corrente
+    glTranslatef(0.0f, yAro, 0.0f);
+
+    glColor3f(0.55f, 0.45f, 0.25f);                  // latão escurecido
+    glutSolidSphere(0.12, 16, 12);                   // esfera central
+
+    // Pingente: cone apontando para baixo
+    glPushMatrix();
+    glTranslatef(0.0f, -0.08f, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);              // +Z → -Y
+    glutSolidCone(0.08, 0.3, 12, 1);
+    glPopMatrix();
+
+    float comprimento = 2.0f * R * std::sin(PI / N); // corda entre dois braços
 
     for (int i = 0; i < N; ++i) {
         glPushMatrix();
-        glRotatef(i * 360.0f / N, 0.0f, 1.0f, 0.0f);  // gira até a direção do braço i
+        glRotatef(i * 360.0f / N, 0.0f, 1.0f, 0.0f); // direção do braço i
 
-        // Braço: do centro até o aro, ao longo de +X
-        glBindTexture(GL_TEXTURE_2D, texMetal);
-        glColor3f(0.45f, 0.4f, 0.3f);
-        peca(R / 2.0f, -0.1f, 0.0f, R, 0.03f, 0.03f);
+        // Braço: cilindro do centro até o aro
+        glColor3f(0.55f, 0.45f, 0.25f);
+        glPushMatrix();
+        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);          // +Z → +X
+        glutSolidCylinder(0.018, R, 8, 1);
+        glPopMatrix();
 
-        // Segmento do aro: na distância R, deitado na direção tangente (Z)
-        float comprimento = 2.0f * R * std::sin(PI / N);   // corda entre dois braços
-        peca(R, -0.1f, 0.0f, 0.04f, 0.04f, comprimento);
+        // Segmento do aro: cilindro deitado na tangente (Z), centrado no ponto R
+        glPushMatrix();
+        glTranslatef(R, 0.0f, -comprimento / 2.0f);
+        glutSolidCylinder(0.025, comprimento, 8, 1);
+        glPopMatrix();
 
-        // Vela na ponta do braço, apoiada no aro
-        glBindTexture(GL_TEXTURE_2D, texBranca);
-        glColor3f(0.95f, 0.9f, 0.75f);                     // cera creme
-        peca(R, 0.02f, 0.0f, 0.05f, 0.20f, 0.05f);
-        glColor3f(1.0f, 0.75f, 0.2f);                      // chama (o B pode dar brilho)
-        peca(R, 0.15f, 0.0f, 0.025f, 0.05f, 0.025f);
+        // Base da vela: esfera pequena sobre o aro
+        glPushMatrix();
+        glTranslatef(R, 0.03f, 0.0f);
+        glutSolidSphere(0.035, 10, 8);
+        glPopMatrix();
+
+        // Vela: cilindro de cera em pé
+        glColor3f(0.95f, 0.9f, 0.75f);
+        glPushMatrix();
+        glTranslatef(R, 0.05f, 0.0f);
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);         // +Z → +Y
+        glutSolidCylinder(0.025, 0.18, 10, 1);
+        glPopMatrix();
+
+        // Chama: esfera alongada (a "lâmpada"; o B pode dar emissão)
+        glColor3f(1.0f, 0.75f, 0.2f);
+        glPushMatrix();
+        glTranslatef(R, 0.27f, 0.0f);
+        glScalef(1.0f, 1.8f, 1.0f);
+        glutSolidSphere(0.022, 10, 8);
+        glPopMatrix();
 
         glPopMatrix();
     }
