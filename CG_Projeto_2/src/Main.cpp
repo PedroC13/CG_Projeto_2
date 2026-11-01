@@ -192,10 +192,6 @@ void display() {
     desenharRelogioPendulo(-8.8f, 0.0f, -28.8f, 90.0f, anguloPendulo); // Frente Esquerda (perto do altar)
     desenharRelogioPendulo( 8.8f, 0.0f, -28.8f,-90.0f, anguloPendulo); // Frente Direita (perto do altar)
 
-    // Renderiza a Lanterna na Mão do Vigia
-    desenharLanternaNaMao();
-
-    // --- MEMBRO B ---
     // --- MEMBRO B ---
     desenharAltar(0.0f, 0.0f, -28.0f, 0.0f);
 
@@ -216,6 +212,10 @@ void display() {
 
     // 1 no chão perto do relógio frontal esquerdo
     desenharCastical(-7.5f, 0.0f, -27.5f, gerenciador.velas[5].acesa);
+
+    // Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
+    // Não coloque nenhum objeto depois desta linha!
+    desenharLanternaNaMao();
 
     glutSwapBuffers();
 }
