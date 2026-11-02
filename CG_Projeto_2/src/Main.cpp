@@ -8,12 +8,14 @@
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
 #include "render/ModelosMembroB.h"
+#include "scene/GameplayMembroB.h"
 #include <iostream>
 #include <cstdlib>
 #include "player/CameraMembroA.h"
 
 GerenciadorCena gerenciador;
 LogicaMembroB logicaB;
+Gameplay gameplay;      // Membro B: fases do jogo (velas -> esconder -> final)
 
 GLuint texMostradorRelogio;
 GLuint texMadeiraRelogio;
@@ -60,6 +62,7 @@ void setup() {
     // ... configurações do OpenGL ...
     gerenciador.inicializarCena();
     logicaB.inicializar();
+    gameplay.iniciar(gerenciador, logicaB, cameraX, cameraZ, yaw); // velas acesas, jogador no corredor
     glutSetCursor(GLUT_CURSOR_NONE);
 }
 
@@ -84,6 +87,8 @@ void timer(int value) {
 
     cameraX = posNovaX;
     cameraZ = posNovaZ;
+
+    gameplay.atualizar(deltaTime, gerenciador, logicaB, cameraX, cameraZ);
 
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
@@ -243,12 +248,16 @@ void display() {
     // 1 no chão perto do relógio frontal esquerdo
     desenharCastical(-7.5f, 0.0f, -27.5f, gerenciador.velas[5].acesa);
 
+    // O bicho do final ruim (só aparece nessa fase)
+    gameplay.desenharMundo();
+
     // Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
     // Não coloque nenhum objeto depois desta linha!
     materialB(0.60f, 64.0f);   // metal da lanterna (o vidro é emissivo)
     desenharLanternaNaMao();
 
     glUseProgram(0);
+    gameplay.desenharHUD(gerenciador);   // caixa de texto, por cima de tudo
     glutSwapBuffers();
 }
 
