@@ -40,6 +40,26 @@ struct LogicaMembroB {
         }
         return false;
     }
+
+    // Colisão das portas: uma porta quase fechada (menos de 45 graus) tapa a
+    // entrada da cabine. Mesmo esquema do Membro C: testa cada eixo separado,
+    // assim o jogador desliza encostado na porta em vez de travar.
+    void colisaoPortas(float antX, float antZ, float& novoX, float& novoZ, float raio = 0.2f) const {
+        if (!livre(antX, antZ, raio)) return;   // porta fechou em cima do jogador: deixa sair
+        if (!livre(novoX, antZ, raio)) novoX = antX;
+        if (!livre(antX, novoZ, raio)) novoZ = antZ;
+    }
+
+    bool livre(float x, float z, float raio) const {
+        // vão de cada cabine na frente do confessionário (x = -8.35)
+        if (portaConfEsq.anguloAtual < 45.0f && bate(x, z, raio, -20.50f, -19.78f)) return false;
+        if (portaConfDir.anguloAtual < 45.0f && bate(x, z, raio, -22.22f, -21.50f)) return false;
+        return true;
+    }
+
+    static bool bate(float x, float z, float raio, float minZ, float maxZ) {
+        return x + raio > -8.45f && x - raio < -8.25f && z + raio > minZ && z - raio < maxZ;
+    }
 };
 
 #endif

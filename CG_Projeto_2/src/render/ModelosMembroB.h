@@ -173,10 +173,10 @@ inline void desenharConfessionario(float posX, float posY, float posZ, float rot
         glRotatef(lado * angulo, 0.0f, 1.0f, 0.0f);         // gira para fora
 
         glColor4f(0.60f, 0.45f, 0.35f, 1.0f);
-        desenharPeca(-lado * 0.33f, 1.05f, 0.02f, 0.64f, 1.9f, 0.04f);   // folha da porta
+        desenharPeca(-lado * 0.30f, 1.05f, 0.02f, 0.58f, 1.9f, 0.04f);   // folha da porta (deixa um vão de ~10 cm)
 
         glColor4f(0.30f, 0.22f, 0.16f, 1.0f);
-        desenharPeca(-lado * 0.58f, 1.05f, 0.06f, 0.04f, 0.12f, 0.04f);  // puxador
+        desenharPeca(-lado * 0.52f, 1.05f, 0.06f, 0.04f, 0.12f, 0.04f);  // puxador
         glPopMatrix();
     }
 

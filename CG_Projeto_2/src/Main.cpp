@@ -84,6 +84,7 @@ void timer(int value) {
 
     // Raio de 0.2f para dar mais espaço livre de navegação
     gerenciador.colisao.processarMovimento(posAntigaX, posAntigaZ, posNovaX, posNovaZ, 0.2f);
+    logicaB.colisaoPortas(posAntigaX, posAntigaZ, posNovaX, posNovaZ);   // portas do confessionário
 
     cameraX = posNovaX;
     cameraZ = posNovaZ;
@@ -171,6 +172,7 @@ void display() {
 
     // Shader Blinn-Phong ligado na CENA INTEIRA (até a lanterna na mão)
     usarShaderB(shaderB, gerenciador.velas, gerenciador.lanternaLigada);
+    gameplay.aplicarLuzes();   // luz de fora escurece e lamparina pisca quando o bicho passa
 
     // Cada materialB(especular, brilho) vale para os objetos desenhados depois dele
     materialB(0.10f, 8.0f);    // pedra e madeira do prédio: foscas
