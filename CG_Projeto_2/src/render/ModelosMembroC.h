@@ -6,6 +6,7 @@
 #endif
 
 #include <GL/freeglut.h>
+#include<iostream>
 #include <cmath>
 
 extern GLuint texMadeiraRelogio;
@@ -15,52 +16,74 @@ extern GLuint texVitral;
 extern GLuint texMolduraVitral;
 extern GLuint texBranca;   // Membro B: textura branca p/ peças só com cor (shader)
 
+
 // Função auxiliar para desenhar um cubo com coordenadas de textura UV em todas as faces
-inline void desenharCuboTexturizado(float tamanho) {
+inline void desenharCuboTexturizado(float tamanho = 1.0f) {
+    
     float h = tamanho / 2.0f;
 
+    GLfloat vtx_list[8][3] = {
+
+        // vertices frontais
+
+        { -h,-h, h }, //a -> 0
+        { h,-h, h }, //b -> 1
+        { h, h, h }, //c -> 2
+        { -h, h, h },  //d -> 3
+
+        // vertices de tráz
+
+        { -h, -h, -h }, // e -> 4
+        { -h, h, -h }, // f -> 5
+        { h, h, -h }, // g -> 6
+        { h, -h, -h }, // h -> 7
+
+    };
+
+    int face_list[6][4] = {
+        {0,1,2,3}, // face frontal
+        {4,5,6,7}, // face traseira
+        {5,3,2,6}, // face superior
+        {4,7,1,0}, // face inferior
+        {7,6,2,1}, // face direita
+        {4,0,3,5} // face esquerda
+    };
+
+    GLfloat normal_vec_list[6][3] = {
+        { 0.0, 0.0, 1.0 }, // face frontal
+        { 0.0, 0.0, -1.0 }, // face traseira
+        { 0.0, 1.0, 0.0 }, // face superior
+        { 0.0, -1.0, 0.0 }, // face inferio
+        { 1.0, 0.0, 0.0 }, // face Direita
+        { -1.0, 0.0, 0.0 } // face Equerda
+    };
+
+    // a textura é "colada que nem um adesivo" os cantos das texturas são gltextcoord
+    // cada face rebe a colagem de uma textura completa com os 4 cantos da textura
+    GLfloat texture_map[4][2] = {
+        { 0.0f , 0.0f }, // canto inferior esquerdo
+        { 1.0f, 0.0f }, // infeiro esquerdo
+        { 1.0f , 1.0f }, // Superior direito
+        { 0.0f , 1.0f } // inferior direito
+
+    };
+
+    //construir o cubo
     glBegin(GL_QUADS);
-    // Face Frontal
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-h, -h, h);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(h, -h, h);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(h, h, h);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-h, h, h);
 
-    // Face Traseira
-    glNormal3f(0.0f, 0.0f, -1.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-h, -h, -h);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-h, h, -h);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(h, h, -h);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(h, -h, -h);
+        for (int i = 0; i < 6; i++) {
+            /* o vetor normal é um vetor que aponta de forma perpendicular a face e
+            * responde a pergunta: "Para onde esse objeto está virado
+            */
+            glNormal3fv(normal_vec_list[i]); 
 
-    // Face Superior
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-h, h, -h);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-h, h, h);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(h, h, h);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(h, h, -h);
+            for (int j = 0; j < 4; j++) {
+                glTexCoord2fv(texture_map[j]); // defini qual pedaço da textura será desenhada em cada vérticie
+                glVertex3fv(vtx_list[face_list[i][j]]); // desenha cada vertice ultilizando a lista de vértices
+            }
 
-    // Face Inferior
-    glNormal3f(0.0f, -1.0f, 0.0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-h, -h, -h);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(h, -h, -h);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(h, -h, h);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-h, -h, h);
-
-    // Face Direita
-    glNormal3f(1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(h, -h, -h);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(h, h, -h);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(h, h, h);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(h, -h, h);
-
-    // Face Esquerda
-    glNormal3f(-1.0f, 0.0f, 0.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-h, -h, -h);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-h, -h, h);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-h, h, h);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-h, h, -h);
+        }
+   
     glEnd();
 }
 
@@ -136,53 +159,7 @@ inline void desenharVitral(float posX, float posY, float posZ, float rotY) {
 // ============================================================================
 // 2. RELÓGIO DE PÊNDULO (Corpo + Mostrador + Pêndulo Visível)
 // ============================================================================
-inline void desenharCuboTexturizado() {
-    glBegin(GL_QUADS);
 
-    // Frente
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-
-    // Trás
-    glNormal3f(0.0f, 0.0f, -1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
-
-    // Topo
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
-
-    // Fundo
-    glNormal3f(0.0f, -1.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-
-    // Direita
-    glNormal3f(1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
-
-    // Esquerda
-    glNormal3f(-1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
-
-    glEnd();
-}
 
 inline void desenharRelogioPendulo(float posX, float posY, float posZ, float rotY, float anguloPendulo) {
     glPushMatrix();

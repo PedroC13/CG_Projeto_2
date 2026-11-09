@@ -17,9 +17,10 @@ struct LogicaMembroB {
     Porta portaConfDir{ 5, -8.33f, 1.0f, -21.89f, 90.0f };
 
     void inicializar() {
-        // Raio menor porque as duas portas ficam a ~1.8 m uma da outra
-        portaConfEsq.raioInteracao = 1.2f;
-        portaConfDir.raioInteracao = 1.2f;
+        // Alcance do E. Como agora vale a MIRA (o que está no centro da tela),
+        // as duas portas (a ~1.8 m uma da outra) não se confundem mais.
+        portaConfEsq.raioInteracao = 1.6f;
+        portaConfDir.raioInteracao = 1.6f;
     }
 
     void atualizar(float deltaTime) {
@@ -27,18 +28,21 @@ struct LogicaMembroB {
         portaConfDir.atualizarAnimacao(deltaTime);
     }
 
-    // Retorna true se abriu/fechou alguma porta (aí o Membro C não precisa checar)
-    bool interagir(float jogX, float jogY, float jogZ) {
+    // Procura qual porta do confessionário está no centro da mira.
+    // Devolve a nota do melhor alvo (-1 = nenhuma). Ver notaMira (LogicMembroC.h).
+    float procurarAlvo(float jogX, float jogY, float jogZ, float fX, float fY, float fZ, Porta*& alvo) {
+        float melhor = -1.0f;
+        alvo = nullptr;
         Porta* portas[2] = { &portaConfEsq, &portaConfDir };
         for (Porta* porta : portas) {
-            float dx = porta->posX - jogX, dy = porta->posY - jogY, dz = porta->posZ - jogZ;
-            float dist = std::sqrt(dx * dx + dy * dy + dz * dz);   // tudo em float: sem aviso C4244
-            if (dist <= porta->raioInteracao) {
-                porta->aberta = !porta->aberta;
-                return true;
-            }
+            // ponto da porta mais perto do jogador (folha de ~0,6 m de largura, ao longo de Z)
+            float pontoY = limitar(jogY, porta->posY - 0.8f, porta->posY + 0.8f);
+            float pontoZ = limitar(jogZ, porta->posZ - 0.3f, porta->posZ + 0.3f);
+            float nota = notaMira(porta->posX, pontoY, pontoZ,
+                                  jogX, jogY, jogZ, fX, fY, fZ, porta->raioInteracao, 0.80f);
+            if (nota > melhor) { melhor = nota; alvo = porta; }
         }
-        return false;
+        return melhor;
     }
 
     // Colisão das portas: uma porta quase fechada (menos de 45 graus) tapa a

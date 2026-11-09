@@ -114,6 +114,7 @@ struct Gameplay {
         // Porta da entrada: trancada depois que as velas apagam, aberta no final bom
         if (fase == Fase::FinalBom)          g.portas[0].aberta = true;
         else if (fase != Fase::ApagarVelas)  g.portas[0].aberta = false;
+        g.portas[0].trancada = (fase != Fase::ApagarVelas && fase != Fase::FinalBom);   // E não mexe nela
     }
 
     void atualizarPassagem(float dt, bool fechada, GerenciadorCena& g) {

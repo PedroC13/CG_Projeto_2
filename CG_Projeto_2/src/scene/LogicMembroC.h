@@ -14,17 +14,42 @@ struct AABB {
     }
 };
 
+// ============================================================================
+// MIRA: o jogador interage com o objeto que está no CENTRO DA TELA.
+// Devolve o cosseno do ângulo entre "para onde o jogador olha" (f, tamanho 1)
+// e "do olho até o objeto" (produto escalar). 1.0 = bem no centro da mira.
+// Devolve -1 se o objeto está longe demais ou fora do cone (cos < cosMinimo).
+// ============================================================================
+inline float notaMira(float objX, float objY, float objZ,
+                      float jogX, float jogY, float jogZ,
+                      float fX, float fY, float fZ,
+                      float alcance, float cosMinimo) {
+    float dx = objX - jogX, dy = objY - jogY, dz = objZ - jogZ;
+    float dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+    if (dist > alcance || dist < 0.001f) return -1.0f;
+
+    float cosAngulo = (dx * fX + dy * fY + dz * fZ) / dist;
+    return (cosAngulo >= cosMinimo) ? cosAngulo : -1.0f;
+}
+
+// Prende v dentro do intervalo [minimo, maximo]. Usado para mirar no ponto da
+// PORTA mais perto do jogador (e não só no centro dela, que falha quando se está colado nela).
+inline float limitar(float v, float minimo, float maximo) {
+    return (v < minimo) ? minimo : (v > maximo) ? maximo : v;
+}
+
 struct Porta {
     int id;
     float posX, posY, posZ;
     float rotInicialY;
     float anguloAtual;
     bool aberta;
+    bool trancada = false;   // o gameplay tranca a porta da entrada: aí o E não abre
     float raioInteracao;
 
     Porta(int id, float x, float y, float z, float rotBase)
         : id(id), posX(x), posY(y), posZ(z), rotInicialY(rotBase),
-        anguloAtual(0.0f), aberta(false), raioInteracao(2.0f) {
+        anguloAtual(0.0f), aberta(false), raioInteracao(2.5f) {
     }
 
     void atualizarAnimacao(float deltaTime) {
@@ -49,7 +74,7 @@ struct Vela {
     float raioInteracao;
 
     Vela(int id, float x, float y, float z)
-        : id(id), posX(x), posY(y), posZ(z), acesa(false), raioInteracao(1.8f) {
+        : id(id), posX(x), posY(y), posZ(z), acesa(false), raioInteracao(2.2f) {
     }
 };
 
@@ -110,6 +135,17 @@ public:
         // Impede que o jogador saia do corredor e "caia no vazio" aos lados da igreja
         obstaculos.push_back({ -9.4f, -1.2f, 9.4f, 19.4f }); // Bloco maciço esquerdo do túnel
         obstaculos.push_back({ 1.2f,  9.4f, 9.4f, 19.4f }); // Bloco maciço direito do túnel
+
+        // 7. Colunas do batente da porta da entrada (x de 1.0 a 1.2 de cada lado, em z = 9.4)
+        obstaculos.push_back({ -1.2f, -1.0f, 9.275f, 9.525f });
+        obstaculos.push_back({  1.0f,  1.2f, 9.275f, 9.525f });
+
+        // 8. Castiçais no chão (velas 5 e 6): caixinha de 30 cm em volta do pé
+        obstaculos.push_back({ -6.15f, -5.85f, -20.15f, -19.85f });
+        obstaculos.push_back({ -7.65f, -7.35f, -27.65f, -27.35f });
+
+        // (As folhas da porta da entrada mudam de lugar ao abrir: a colisão
+        //  delas fica em GerenciadorCena::colisaoPortaEntrada)
     }
 
     // Processa o movimento usando raio padrão mais fino (0.2f)
@@ -155,8 +191,9 @@ public:
 
         // Ajustamos o Z da entrada e o X das portas laterais para os novos limites (9.4f)
         portas.push_back(Porta(1, 0.0f, 0.0f, 9.4f, 0.0f)); // Entrada
-        portas.push_back(Porta(2, -9.4f, 0.0f, -10.0f, 90.0f)); // Parede Esquerda
-        portas.push_back(Porta(3, 9.4f, 0.0f, -15.0f, -90.0f)); // Parede Direita
+        // Portas laterais desativadas: nunca foram desenhadas, então o E abria uma porta invisível
+        // portas.push_back(Porta(2, -9.4f, 0.0f, -10.0f, 90.0f)); // Parede Esquerda
+        // portas.push_back(Porta(3, 9.4f, 0.0f, -15.0f, -90.0f)); // Parede Direita
 
         // Cadastro Lógico das 6 velas correspondentes (para interação, se houver lógica no jogo)
         velas.push_back(Vela(1, -1.0f, 1.0f, -28.0f)); // Altar Esq
@@ -173,27 +210,58 @@ public:
         }
     }
 
-    void interagir(float jogX, float jogY, float jogZ) {
-        // Checa proximidade com as portas
+    // Procura o que está no centro da mira: a porta da entrada (se não estiver
+    // trancada) ou uma vela ACESA. Devolve a nota do melhor alvo (-1 = nenhum).
+    float procurarAlvo(float jogX, float jogY, float jogZ, float fX, float fY, float fZ,
+                       Porta*& portaAlvo, Vela*& velaAlvo) {
+        float melhor = -1.0f;
+        portaAlvo = nullptr;
+        velaAlvo = nullptr;
+
         for (auto& porta : portas) {
-            float dist = std::sqrt(std::pow(porta.posX - jogX, 2) +
-                std::pow(porta.posY - jogY, 2) +
-                std::pow(porta.posZ - jogZ, 2));
-            if (dist <= porta.raioInteracao) {
-                porta.aberta = !porta.aberta;
-                return; // Interage com apenas um objeto por clique
-            }
+            if (porta.trancada) continue;
+            // ponto da porta mais perto do jogador (a porta vai de x-0.9 a x+0.9 e tem 2,8 m de altura)
+            float pontoX = limitar(jogX, porta.posX - 0.9f, porta.posX + 0.9f);
+            float pontoY = limitar(jogY, porta.posY + 0.3f, porta.posY + 2.5f);
+            float nota = notaMira(pontoX, pontoY, porta.posZ,
+                                  jogX, jogY, jogZ, fX, fY, fZ, porta.raioInteracao, 0.80f);
+            if (nota > melhor) { melhor = nota; portaAlvo = &porta; velaAlvo = nullptr; }
         }
 
-        // Checa proximidade com as velas
         for (auto& vela : velas) {
-            float dist = std::sqrt(std::pow(vela.posX - jogX, 2) +
-                std::pow(vela.posY - jogY, 2) +
-                std::pow(vela.posZ - jogZ, 2));
-            if (dist <= vela.raioInteracao) {
-                vela.acesa = !vela.acesa;
-                return; // Interage com apenas um objeto por clique
-            }
+            if (!vela.acesa) continue;   // a varinha só apaga: vela apagada não é alvo
+            // mira na chama (~0,55 m acima da base do castiçal)
+            float nota = notaMira(vela.posX, vela.posY + 0.55f, vela.posZ,
+                                  jogX, jogY, jogZ, fX, fY, fZ, vela.raioInteracao, 0.94f);
+            if (nota > melhor) { melhor = nota; velaAlvo = &vela; portaAlvo = nullptr; }
+        }
+
+        return melhor;
+    }
+
+    // Colisão da porta da entrada (z = 9.4). Mesmo esquema do SistemaColisao:
+    // testa cada eixo separado, assim o jogador desliza em vez de travar.
+    //  - fechada (< 45 graus): uma placa tapa o vão da porta
+    //  - aberta: as duas folhas ficam em pé PARA DENTRO da igreja
+    //    (x = -1 e x = +1, de z = 8.4 até 9.4) e viram dois obstáculos finos
+    void colisaoPortaEntrada(float antX, float antZ, float& novoX, float& novoZ, float raio = 0.2f) const {
+        const Porta& p = portas[0];
+        AABB pecas[2];
+        int n;
+
+        if (p.anguloAtual < 45.0f) {
+            pecas[0] = { -1.0f, 1.0f, 9.3f, 9.5f };
+            n = 1;
+        } else {
+            pecas[0] = { -1.07f, -0.93f, 8.4f, 9.4f };
+            pecas[1] = {  0.93f,  1.07f, 8.4f, 9.4f };
+            n = 2;
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (pecas[i].colide(antX, antZ, raio)) continue;   // fechou em cima do jogador: deixa sair
+            if (pecas[i].colide(novoX, antZ, raio)) novoX = antX;
+            if (pecas[i].colide(antX, novoZ, raio)) novoZ = antZ;
         }
     }
 };

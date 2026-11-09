@@ -8,6 +8,7 @@
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
 #include "render/ModelosMembroB.h"
+#include "render/Varinha.h"
 #include "scene/GameplayMembroB.h"
 #include <iostream>
 #include <cstdlib>
@@ -35,6 +36,52 @@ GLuint texParede = 0;
 GLuint texTeto = 0;
 
 int tempo_anterior = 0;
+
+// --- PAUSA (tecla P) ---
+// Pausado: o jogo congela e o mouse fica livre (aparece o cursor e ele não é
+// mais puxado para o centro), para poder redimensionar ou mover a janela.
+bool pausado = false;
+
+void alternarPausa() {
+    pausado = !pausado;
+    for (int i = 0; i < 256; i++) teclas[i] = false;   // nada de andar sozinho ao voltar
+
+    if (pausado) {
+        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+    } else {
+        glutSetCursor(GLUT_CURSOR_NONE);
+        primeiroMouse = true;   // o 1o movimento só recentraliza: a câmera não dá um pulo
+        glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+    }
+    glutPostRedisplay();
+}
+
+// Mouse só gira a câmera fora da pausa
+void mouseMovimento(int x, int y) {
+    if (!pausado) cameraMouse(x, y);
+}
+
+// --- MIRA E VARINHA ---
+// O que está no centro da tela agora (no máximo um dos dois). Atualizado todo frame.
+Porta* alvoPorta = nullptr;
+Vela*  alvoVela  = nullptr;
+
+const float DURACAO_GOLPE = 0.35f;   // segundos da animação da varinha
+float animVarinha = 0.0f;            // > 0 enquanto a varinha está abaixando/subindo
+
+// Procura o objeto no centro da mira entre o que é do Membro C (porta da entrada
+// e velas) e do Membro B (portas do confessionário). Fica o mais centralizado.
+void atualizarAlvo() {
+    float fX, fY, fZ;
+    cameraFrente(fX, fY, fZ);
+
+    Porta* portaC; Vela* vela; Porta* portaB;
+    float notaC = gerenciador.procurarAlvo(cameraX, cameraY, cameraZ, fX, fY, fZ, portaC, vela);
+    float notaB = logicaB.procurarAlvo(cameraX, cameraY, cameraZ, fX, fY, fZ, portaB);
+
+    if (notaB > notaC) { alvoPorta = portaB; alvoVela = nullptr; }
+    else               { alvoPorta = portaC; alvoVela = vela; }
+}
 
 void setup() {
     glEnable(GL_DEPTH_TEST);
@@ -71,6 +118,12 @@ void timer(int value) {
     float deltaTime = (tempo_atual - tempo_anterior) / 1000.0f;
     tempo_anterior = tempo_atual;
 
+    if (pausado) {   // congela tudo, mas continua redesenhando (ex.: ao redimensionar)
+        glutPostRedisplay();
+        glutTimerFunc(16, timer, 0);
+        return;
+    }
+
     gerenciador.atualizar(deltaTime);
     logicaB.atualizar(deltaTime);
 
@@ -85,11 +138,19 @@ void timer(int value) {
     // Raio de 0.2f para dar mais espaço livre de navegação
     gerenciador.colisao.processarMovimento(posAntigaX, posAntigaZ, posNovaX, posNovaZ, 0.2f);
     logicaB.colisaoPortas(posAntigaX, posAntigaZ, posNovaX, posNovaZ);   // portas do confessionário
+    gerenciador.colisaoPortaEntrada(posAntigaX, posAntigaZ, posNovaX, posNovaZ);   // porta da entrada
 
     cameraX = posNovaX;
     cameraZ = posNovaZ;
 
     gameplay.atualizar(deltaTime, gerenciador, logicaB, cameraX, cameraZ);
+
+    atualizarAlvo();   // o que está na mira depois de andar/olhar
+
+    if (animVarinha > 0.0f) {
+        animVarinha -= deltaTime;
+        if (animVarinha < 0.0f) animVarinha = 0.0f;
+    }
 
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
@@ -111,6 +172,13 @@ void reshape(int width, int height) {
 bool modoWireframe = false;
 
 void keyboard(unsigned char key, int x, int y) {
+    if (key == 'p' || key == 'P') {
+        alternarPausa();
+        return;
+    }
+    if (key == 27) exit(0);   // ESC sai mesmo pausado
+    if (pausado) return;       // pausado: ignora as outras teclas
+
     cameraTeclaDown(key);
 
     if (key == 't' || key == 'T') {
@@ -125,35 +193,111 @@ void keyboard(unsigned char key, int x, int y) {
     }
 
     if (key == 'e' || key == 'E') {
-        // Primeiro as portas do confessionário (B); se nenhuma estiver perto, o resto (C)
-        if (!logicaB.interagir(cameraX, cameraY, cameraZ)) {
-            gerenciador.interagir(cameraX, cameraY, cameraZ);
+        // Interage com o que está no CENTRO DA MIRA (ver atualizarAlvo)
+        if (alvoPorta) {
+            alvoPorta->aberta = !alvoPorta->aberta;
+        } else if (alvoVela) {
+            alvoVela->acesa = false;          // a varinha só apaga
+            animVarinha = DURACAO_GOLPE;      // dispara a animação da varinha
         }
         glutPostRedisplay();
     }
-
-    if (key == 27) { // ESC para sair
-        exit(0);
-    }
 }
 
-// RENDERIZA A LANTERNA FIXA NA MÃO DO JOGADOR (HUD 3D)
-void desenharLanternaNaMao() {
-    if (!gerenciador.lanternaLigada) return;
-
+// OBJETOS NA MÃO DO VIGIA (HUD 3D): varinha na esquerda, lamparina na direita.
+// Desenhados no espaço da CÂMERA (glLoadIdentity), por isso acompanham o olhar.
+void desenharObjetosNaMao() {
     glPushMatrix();
     glLoadIdentity(); // Entra no espaço da câmera
 
-    // Posiciona no canto inferior direito da tela
-    glTranslatef(0.28f, -0.32f, -0.55f);
-    glRotatef(12.0f, 0.0f, 1.0f, 0.0f);   // Inclina suavemente para o centro
-    glScalef(0.35f, 0.35f, 0.35f);         // Reduz escala para proporção de mão
-
-    // Limpa só a profundidade: a lanterna não é cortada por paredes próximas,
+    // Limpa só a profundidade: os objetos da mão não são cortados por paredes próximas,
     // mas suas próprias peças continuam se escondendo corretamente
     glClear(GL_DEPTH_BUFFER_BIT);
-    desenharLanterna(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Varinha: canto inferior esquerdo. Ao apagar uma vela, a ponta desce e volta (seno de 0 a pi).
+    float golpe = 0.0f;
+    if (animVarinha > 0.0f) golpe = std::sin(3.14159265f * animVarinha / DURACAO_GOLPE);
+    materialB(0.50f, 48.0f);   // latão
+    glPushMatrix();
+    glTranslatef(-0.25f, -0.28f, -0.50f);
+    desenharVarinha(golpe);
     glPopMatrix();
+
+    // Lamparina: canto inferior direito (só quando ligada, tecla F)
+    if (gerenciador.lanternaLigada) {
+        materialB(0.60f, 64.0f);   // metal da lanterna (o vidro é emissivo)
+        glPushMatrix();
+        glTranslatef(0.28f, -0.32f, -0.55f);
+        glRotatef(12.0f, 0.0f, 1.0f, 0.0f);   // Inclina suavemente para o centro
+        glScalef(0.35f, 0.35f, 0.35f);         // Reduz escala para proporção de mão
+        desenharLanterna(0.0f, 0.0f, 0.0f, 0.0f);
+        glPopMatrix();
+    }
+
+    glPopMatrix();
+}
+
+// MIRA no centro da tela (2D, por cima de tudo). Fica amarela e maior quando
+// há algo para interagir, com a dica da tecla embaixo. Chamar com o shader DESLIGADO.
+void desenharMira() {
+    int w = glutGet(GLUT_WINDOW_WIDTH), h = glutGet(GLUT_WINDOW_HEIGHT);
+    float cx = w / 2.0f, cy = h / 2.0f;
+    bool temAlvo = (alvoPorta != nullptr || alvoVela != nullptr);
+
+    // Projeção 2D em pixels (mesmo esquema da caixa de texto do HUD)
+    glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
+    glOrtho(0, w, 0, h, -1, 1);
+    glMatrixMode(GL_MODELVIEW); glPushMatrix(); glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
+
+    if (pausado) {
+        // Tela escurecida + aviso no centro (no lugar da mira)
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0); glVertex2f((float)w, 0); glVertex2f((float)w, (float)h); glVertex2f(0, (float)h);
+        glEnd();
+        glDisable(GL_BLEND);
+
+        const char* l1 = "PAUSADO";
+        const char* l2 = "P para continuar  -  ESC para sair";
+        glColor3f(1.0f, 1.0f, 1.0f);
+        Gameplay::texto(cx - Gameplay::larguraTexto(l1) / 2.0f, cy + 10.0f, l1);
+        glColor3f(0.75f, 0.75f, 0.75f);
+        Gameplay::texto(cx - Gameplay::larguraTexto(l2) / 2.0f, cy - 20.0f, l2);
+
+        glEnable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION); glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        return;
+    }
+
+    if (temAlvo) glColor3f(1.0f, 0.85f, 0.30f);
+    else         glColor3f(0.85f, 0.85f, 0.85f);
+
+    float t = temAlvo ? 10.0f : 6.0f;   // tamanho dos tracinhos
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+    glVertex2f(cx - t, cy);  glVertex2f(cx - 3, cy);   // esquerda
+    glVertex2f(cx + 3, cy);  glVertex2f(cx + t, cy);   // direita
+    glVertex2f(cx, cy - t);  glVertex2f(cx, cy - 3);   // baixo
+    glVertex2f(cx, cy + 3);  glVertex2f(cx, cy + t);   // cima
+    glEnd();
+    glLineWidth(1.0f);
+
+    if (temAlvo) {
+        const char* dica = alvoVela ? "[E] Apagar vela"
+                         : (alvoPorta->aberta ? "[E] Fechar porta" : "[E] Abrir porta");
+        Gameplay::texto(cx - Gameplay::larguraTexto(dica) / 2.0f, cy - 36.0f, dica);
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION); glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void display() {
@@ -253,13 +397,13 @@ void display() {
     // O bicho do final ruim (só aparece nessa fase)
     gameplay.desenharMundo();
 
-    // Lanterna na mão do vigia: SEMPRE POR ÚLTIMO (fica por cima de tudo)
+    // Varinha e lanterna na mão do vigia: SEMPRE POR ÚLTIMO (ficam por cima de tudo)
     // Não coloque nenhum objeto depois desta linha!
-    materialB(0.60f, 64.0f);   // metal da lanterna (o vidro é emissivo)
-    desenharLanternaNaMao();
+    desenharObjetosNaMao();
 
     glUseProgram(0);
     gameplay.desenharHUD(gerenciador);   // caixa de texto, por cima de tudo
+    desenharMira();                      // mira no centro da tela
     glutSwapBuffers();
 }
 
@@ -267,7 +411,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Igreja Assombrada - Visualizacao (Pressione T para Wireframe, F para Lanterna)");
+    glutCreateWindow("Igreja Assombrada - Visualizacao (T Wireframe, F Lanterna, P Pausa)");
 
     setup();
 
@@ -275,8 +419,8 @@ int main(int argc, char** argv) {
     glutReshapeFunc(reshape);
     glutKeyboardUpFunc(cameraTeclaUp);
     glutIgnoreKeyRepeat(1);
-    glutPassiveMotionFunc(cameraMouse);
-    glutMotionFunc(cameraMouse);
+    glutPassiveMotionFunc(mouseMovimento);
+    glutMotionFunc(mouseMovimento);
     glutKeyboardFunc(keyboard);
     glutTimerFunc(0, timer, 0);
 
