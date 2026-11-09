@@ -19,10 +19,13 @@
 //   GL_LIGHT0      luar (direcional, fraco, azulado)
 //   GL_LIGHT1      lamparina na mão (point light, luz espalhada) -> tecla F
 //   GL_LIGHT2..7   as 6 velas dos castiçais (point lights) -> clique / E
+// Lustres: os 8 slots já estão ocupados, então cada lustre vira UMA point light
+// extra (no centro do aro de velas), enviada ao shader por uniform.
 // ============================================================================
 
 const int NUM_VELAS_B = 6;
 const float ALTURA_CHAMA_B = 0.6f;     // chama fica ~0.6 acima da base do castiçal
+const int NUM_LUSTRES_B = 4;
 
 // ---------------------------------------------------------------------------
 // VERTEX SHADER: roda uma vez por vértice
@@ -58,6 +61,8 @@ uniform sampler2D textura;          // unidade 0
 uniform float velaAcesa[6];         // 1.0 = acesa, 0.0 = apagada
 uniform float lanternaLigada;       // 1.0 / 0.0 (lamparina na mão)
 uniform float tempo;                // segundos (tremulação das velas)
+uniform vec3  lustrePos[4];         // centro de cada lustre, no ESPAÇO DO OLHO
+uniform float lustresAcesos;        // 1.0 / 0.0
 
 // Blinn-Phong de UMA luz
 //   posLuz.w == 0 -> direcional | posLuz.w == 1 -> point/spot
@@ -151,6 +156,15 @@ void main() {
                       gl_LightSource[7].quadraticAttenuation, vec3(0.0), -1.0, 0.0,
                       velaAcesa[5] * t5, N, V, albedo);
 
+    // LUSTRES: as 8 velas de cada lustre somadas numa luz só, no centro do aro.
+    // Atenuação fraca porque estão alto (~7 m): iluminam o salão de leve.
+    vec3 corLustre = vec3(1.0, 0.62, 0.28);
+    for (int i = 0; i < 4; i++) {
+        float tr = 0.9 + 0.1 * sin(tempo * (7.0 + float(i)) + float(i) * 1.3);   // tremulação
+        cor += blinnPhong(vec4(lustrePos[i], 1.0), corLustre, 1.0, 0.05, 0.02,
+                          vec3(0.0), -1.0, 0.0, lustresAcesos * 0.6 * tr, N, V, albedo);
+    }
+
     gl_FragColor = vec4(cor, texel.a * gl_Color.a);
 }
 )";
@@ -243,6 +257,25 @@ inline void usarShaderB(GLuint programa, const std::vector<Vela>& velas, bool la
     glUniform1fv(glGetUniformLocation(programa, "velaAcesa"), NUM_VELAS_B, acesa);
     glUniform1f(glGetUniformLocation(programa, "lanternaLigada"), lanternaLigada ? 1.0f : 0.0f);
     glUniform1f(glGetUniformLocation(programa, "tempo"), glutGet(GLUT_ELAPSED_TIME) / 1000.0f);
+}
+
+// Lustres: manda a posição das 4 luzes para o shader.
+// O glLightfv converte a posição para o espaço do olho sozinho; num uniform isso
+// é feito à mão: posOlho = MODELVIEW * posMundo. Chamar DEPOIS do cameraAplicar()
+// e do usarShaderB() (a modelview atual é a da câmera).
+inline void enviarLustresB(GLuint programa, const float posMundo[][3], bool acesos) {
+    GLfloat mv[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mv);          // matriz guardada por colunas
+
+    GLfloat posOlho[NUM_LUSTRES_B * 3];
+    for (int i = 0; i < NUM_LUSTRES_B; i++) {
+        float x = posMundo[i][0], y = posMundo[i][1], z = posMundo[i][2];
+        posOlho[3 * i + 0] = mv[0] * x + mv[4] * y + mv[8]  * z + mv[12];
+        posOlho[3 * i + 1] = mv[1] * x + mv[5] * y + mv[9]  * z + mv[13];
+        posOlho[3 * i + 2] = mv[2] * x + mv[6] * y + mv[10] * z + mv[14];
+    }
+    glUniform3fv(glGetUniformLocation(programa, "lustrePos"), NUM_LUSTRES_B, posOlho);
+    glUniform1f(glGetUniformLocation(programa, "lustresAcesos"), acesos ? 1.0f : 0.0f);
 }
 
 // Material de um objeto: quanto ele brilha (especular) e quão concentrado é

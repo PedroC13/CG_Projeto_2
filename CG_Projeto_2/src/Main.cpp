@@ -37,10 +37,12 @@ GLuint texTeto = 0;
 
 int tempo_anterior = 0;
 
-// --- PAUSA (tecla P) ---
+// --- MENU INICIAL E PAUSA (tecla P) ---
 // Pausado: o jogo congela e o mouse fica livre (aparece o cursor e ele não é
 // mais puxado para o centro), para poder redimensionar ou mover a janela.
-bool pausado = false;
+// O jogo começa pausado, mostrando o menu com o objetivo e os comandos.
+bool pausado = true;
+bool menuInicial = true;   // true só antes da primeira partida (ENTER começa)
 
 void alternarPausa() {
     pausado = !pausado;
@@ -83,6 +85,23 @@ void atualizarAlvo() {
     else               { alvoPorta = portaC; alvoVela = vela; }
 }
 
+// Recomeça a partida do zero (tecla R na tela de final)
+void reiniciarJogo() {
+    gerenciador.inicializarCena();        // velas, porta da entrada e colisões do zero
+    gerenciador.lanternaLigada = true;    // o final ruim apaga a lamparina
+    logicaB.inicializar();
+
+    gameplay.passagem = Passagem::Esperando;
+    gameplay.cabineFinal = 0;
+    gameplay.iniciar(gerenciador, logicaB, cameraX, cameraZ, yaw);   // acende as velas e põe o jogador no corredor
+    pitch = 0.0f;
+
+    alvoPorta = nullptr;                  // as portas/velas foram recriadas
+    alvoVela = nullptr;
+    animVarinha = 0.0f;
+    for (int i = 0; i < 256; i++) teclas[i] = false;
+}
+
 void setup() {
     glEnable(GL_DEPTH_TEST);
 
@@ -110,7 +129,7 @@ void setup() {
     gerenciador.inicializarCena();
     logicaB.inicializar();
     gameplay.iniciar(gerenciador, logicaB, cameraX, cameraZ, yaw); // velas acesas, jogador no corredor
-    glutSetCursor(GLUT_CURSOR_NONE);
+    glutSetCursor(GLUT_CURSOR_LEFT_ARROW);   // começa no menu: mouse livre
 }
 
 void timer(int value) {
@@ -173,12 +192,28 @@ bool modoWireframe = false;
 bool luzGlobal = false;   // DEBUG: tecla G clareia a cena inteira
 
 void keyboard(unsigned char key, int x, int y) {
+    if (key == 27) exit(0);   // ESC sai sempre (menu, pausa ou jogo)
+
+    if (menuInicial) {        // menu inicial: só ENTER (ou espaço) começa
+        if (key == 13 || key == ' ') {
+            menuInicial = false;
+            alternarPausa();   // despausa: esconde o cursor e libera o jogo
+        }
+        return;
+    }
+
     if (key == 'p' || key == 'P') {
         alternarPausa();
         return;
     }
-    if (key == 27) exit(0);   // ESC sai mesmo pausado
     if (pausado) return;       // pausado: ignora as outras teclas
+
+    // Tela de final: R recomeça a partida
+    if ((key == 'r' || key == 'R') &&
+        (gameplay.fase == Fase::FinalRuim || gameplay.fase == Fase::FinalBom)) {
+        reiniciarJogo();
+        return;
+    }
 
     cameraTeclaDown(key);
 
@@ -243,12 +278,79 @@ void desenharObjetosNaMao() {
     glPopMatrix();
 }
 
+// PAINEL DE COMANDOS (menu inicial e pausa). Já deve estar em projeção 2D (glOrtho).
+// Escurece a tela e mostra o objetivo + a lista de teclas.
+void desenharPainelComandos(int w, int h) {
+    // Fundo: tela inteira escurecida + painel mais escuro no meio
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0); glVertex2f((float)w, 0); glVertex2f((float)w, (float)h); glVertex2f(0, (float)h);
+    glEnd();
+
+    float pw = 520.0f, ph = 400.0f;                 // tamanho do painel
+    float px = (w - pw) / 2.0f, py = (h - ph) / 2.0f;
+    glColor4f(0.0f, 0.0f, 0.0f, 0.75f);
+    glBegin(GL_QUADS);
+    glVertex2f(px, py); glVertex2f(px + pw, py); glVertex2f(px + pw, py + ph); glVertex2f(px, py + ph);
+    glEnd();
+    glDisable(GL_BLEND);
+
+    float cx = w / 2.0f;
+    float y = py + ph - 45.0f;                       // escreve de cima para baixo
+
+    // Título e objetivo (centralizados)
+    const char* titulo = menuInicial ? "O TURNO NOTURNO" : "PAUSADO";
+    glColor3f(1.0f, 0.85f, 0.30f);
+    Gameplay::texto(cx - Gameplay::larguraTexto(titulo) / 2.0f, y, titulo);
+    y -= 38.0f;
+
+    const char* objetivo[] = {
+        "Você é o vigia da igreja.",
+        "Apague todas as velas com a varinha.",
+        "Depois, siga o que aparecer na tela.",
+    };
+    glColor3f(0.90f, 0.90f, 0.90f);
+    for (const char* linha : objetivo) {
+        Gameplay::texto(cx - Gameplay::larguraTexto(linha) / 2.0f, y, linha);
+        y -= 24.0f;
+    }
+    y -= 14.0f;
+
+    // Comandos: tecla (amarela) à esquerda, descrição à direita
+    const char* comandos[][2] = {
+        { "W A S D", "andar" },
+        { "Mouse",   "olhar (a mira mostra o alvo)" },
+        { "E",       "apagar vela / abrir e fechar porta" },
+        { "F",       "lamparina" },
+        { "P",       "pausar e liberar o mouse" },
+        { "T  /  G", "wireframe  /  luz global (debug)" },
+        { "ESC",     "sair" },
+    };
+    float colTecla = px + 50.0f, colDesc = px + 170.0f;
+    for (auto& c : comandos) {
+        glColor3f(1.0f, 0.85f, 0.30f);
+        Gameplay::texto(colTecla, y, c[0]);
+        glColor3f(0.85f, 0.85f, 0.85f);
+        Gameplay::texto(colDesc, y, c[1]);
+        y -= 24.0f;
+    }
+
+    // Rodapé: como sair desta tela
+    const char* rodape = menuInicial ? "Pressione ENTER para começar" : "Pressione P para continuar";
+    glColor3f(1.0f, 1.0f, 1.0f);
+    Gameplay::texto(cx - Gameplay::larguraTexto(rodape) / 2.0f, py + 25.0f, rodape);
+}
+
 // MIRA no centro da tela (2D, por cima de tudo). Fica amarela e maior quando
 // há algo para interagir, com a dica da tecla embaixo. Chamar com o shader DESLIGADO.
 void desenharMira() {
     int w = glutGet(GLUT_WINDOW_WIDTH), h = glutGet(GLUT_WINDOW_HEIGHT);
     float cx = w / 2.0f, cy = h / 2.0f;
     bool temAlvo = (alvoPorta != nullptr || alvoVela != nullptr);
+    bool fimDeJogo = (gameplay.fase == Fase::FinalRuim || gameplay.fase == Fase::FinalBom);
+    if (fimDeJogo && !pausado) return;   // tela de final: sem mira
 
     // Projeção 2D em pixels (mesmo esquema da caixa de texto do HUD)
     glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
@@ -258,22 +360,7 @@ void desenharMira() {
     glDisable(GL_TEXTURE_2D);
 
     if (pausado) {
-        // Tela escurecida + aviso no centro (no lugar da mira)
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
-        glBegin(GL_QUADS);
-        glVertex2f(0, 0); glVertex2f((float)w, 0); glVertex2f((float)w, (float)h); glVertex2f(0, (float)h);
-        glEnd();
-        glDisable(GL_BLEND);
-
-        const char* l1 = "PAUSADO";
-        const char* l2 = "P para continuar  -  ESC para sair";
-        glColor3f(1.0f, 1.0f, 1.0f);
-        Gameplay::texto(cx - Gameplay::larguraTexto(l1) / 2.0f, cy + 10.0f, l1);
-        glColor3f(0.75f, 0.75f, 0.75f);
-        Gameplay::texto(cx - Gameplay::larguraTexto(l2) / 2.0f, cy - 20.0f, l2);
-
+        desenharPainelComandos(w, h);   // menu inicial ou pausa (no lugar da mira)
         glEnable(GL_DEPTH_TEST);
         glMatrixMode(GL_PROJECTION); glPopMatrix();
         glMatrixMode(GL_MODELVIEW);  glPopMatrix();
@@ -326,6 +413,16 @@ void display() {
     usarShaderB(shaderB, gerenciador.velas, gerenciador.lanternaLigada);
     gameplay.aplicarLuzes();   // luz de fora escurece e lamparina pisca quando o bicho passa
 
+    // Lustres: acesos só enquanto há velas para apagar (a porta bate e eles apagam)
+    bool lustresAcesos = (gameplay.fase == Fase::ApagarVelas);
+    float luzLustres[NUM_LUSTRES_B][3];
+    for (int i = 0; i < NUM_LUSTRES_B; ++i) {
+        luzLustres[i][0] = 0.0f;
+        luzLustres[i][1] = 6.9f;                 // centro do aro: 9.8 - 2 x 1.7 + chamas
+        luzLustres[i][2] = 4.55f - i * 9.7f;     // mesmos Z do desenho dos lustres
+    }
+    enviarLustresB(shaderB, luzLustres, lustresAcesos);
+
     // DEBUG: luz ambiente cheia (precisa vir DEPOIS de aplicarLuzes, que redefine o ambiente todo frame)
     if (luzGlobal) {
         GLfloat ambienteDebug[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -353,7 +450,7 @@ void display() {
     float tempoSeg = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     for (int i = 0; i < 4; ++i) {
         float z = 4.55f - i * 9.7f;                    // 4,55 / -5,15 / -14,85 / -24,55
-        desenharLustre(0.0f, 9.8f, z, tempoSeg + i * 0.8f, 2.0f, texBranca);
+        desenharLustre(0.0f, 9.8f, z, tempoSeg + i * 0.8f, 2.0f, texBranca, lustresAcesos);
     }
     
     if (modoWireframe) {
@@ -416,7 +513,7 @@ void display() {
     desenharObjetosNaMao();
 
     glUseProgram(0);
-    gameplay.desenharHUD(gerenciador);   // caixa de texto, por cima de tudo
+    if (!pausado) gameplay.desenharHUD(gerenciador);   // caixa de texto (some no menu/pausa)
     desenharMira();                      // mira no centro da tela
     glutSwapBuffers();
 }

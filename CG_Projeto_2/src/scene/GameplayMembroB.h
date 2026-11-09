@@ -273,12 +273,12 @@ struct Gameplay {
             break;
         case Fase::FinalRuim:
             linha1 = "Você não estava sozinho.";
-            snprintf(linha2, sizeof(linha2), "FINAL RUIM  -  ESC para sair");
+            snprintf(linha2, sizeof(linha2), "FINAL RUIM  -  R para reiniciar  -  ESC para sair");
             r = 1.0f; gr = 0.25f; bl = 0.25f;
             break;
         case Fase::FinalBom:
             linha1 = "O silêncio voltou. A porta da igreja está aberta.";
-            snprintf(linha2, sizeof(linha2), "FINAL BOM  -  ESC para sair");
+            snprintf(linha2, sizeof(linha2), "FINAL BOM  -  R para reiniciar  -  ESC para sair");
             break;
         default:
             return;   // porta batendo e escondido: tela sem texto (tensão)
