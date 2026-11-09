@@ -170,6 +170,7 @@ void reshape(int width, int height) {
 }
 
 bool modoWireframe = false;
+bool luzGlobal = false;   // DEBUG: tecla G clareia a cena inteira
 
 void keyboard(unsigned char key, int x, int y) {
     if (key == 'p' || key == 'P') {
@@ -180,6 +181,11 @@ void keyboard(unsigned char key, int x, int y) {
     if (pausado) return;       // pausado: ignora as outras teclas
 
     cameraTeclaDown(key);
+
+    if (key == 'g' || key == 'G') {
+        luzGlobal = !luzGlobal;
+        glutPostRedisplay();
+    }
 
     if (key == 't' || key == 'T') {
         modoWireframe = !modoWireframe;
@@ -304,6 +310,8 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
+    glPolygonMode(GL_FRONT_AND_BACK, modoWireframe ? GL_LINE : GL_FILL);
+
     // --- LUZES (Membro B) ---
     // Lanterna ANTES da câmera: fica presa ao olho e segue o olhar
     posicionarLanternaB();
@@ -317,6 +325,12 @@ void display() {
     // Shader Blinn-Phong ligado na CENA INTEIRA (até a lanterna na mão)
     usarShaderB(shaderB, gerenciador.velas, gerenciador.lanternaLigada);
     gameplay.aplicarLuzes();   // luz de fora escurece e lamparina pisca quando o bicho passa
+
+    // DEBUG: luz ambiente cheia (precisa vir DEPOIS de aplicarLuzes, que redefine o ambiente todo frame)
+    if (luzGlobal) {
+        GLfloat ambienteDebug[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambienteDebug);
+    }
 
     // Cada materialB(especular, brilho) vale para os objetos desenhados depois dele
     materialB(0.10f, 8.0f);    // pedra e madeira do prédio: foscas
