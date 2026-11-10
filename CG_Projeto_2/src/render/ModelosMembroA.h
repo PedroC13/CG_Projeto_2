@@ -311,7 +311,7 @@ inline GLuint criarTexturaBranca() {
 // Lustre pendente: (posX, posY, posZ) é o ponto de fixação no TETO.
 // tempo em segundos (balanço); escala: 1 = tamanho base, 2 = dobro.
 inline void desenharLustre(float posX, float posY, float posZ, float tempo, float escala,
-    GLuint texBranca) {
+    GLuint texBranca, bool acesas = true) {
     const int   N = 8;            // braços, segmentos do aro e velas
     const float R = 0.6f;         // raio do aro no tamanho base (m)
     const float PI = 3.14159265f;
@@ -383,13 +383,19 @@ inline void desenharLustre(float posX, float posY, float posZ, float tempo, floa
         glutSolidCylinder(0.025, 0.18, 10, 1);
         glPopMatrix();
 
-        // Chama: esfera alongada (a "lâmpada"; o B pode dar emissão)
-        glColor3f(1.0f, 0.75f, 0.2f);
-        glPushMatrix();
-        glTranslatef(R, 0.27f, 0.0f);
-        glScalef(1.0f, 1.8f, 1.0f);
-        glutSolidSphere(0.022, 10, 8);
-        glPopMatrix();
+        // Chama: esfera alongada e EMISSIVA (brilha sozinha). Apagada: não desenha.
+        if (acesas) {
+            GLfloat emissaoChama[] = { 1.0f, 0.6f, 0.15f, 1.0f };
+            GLfloat semEmissao[]   = { 0.0f, 0.0f, 0.0f, 1.0f };
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissaoChama);
+            glColor3f(1.0f, 0.75f, 0.2f);
+            glPushMatrix();
+            glTranslatef(R, 0.27f, 0.0f);
+            glScalef(1.0f, 1.8f, 1.0f);
+            glutSolidSphere(0.022, 10, 8);
+            glPopMatrix();
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, semEmissao);   // não vaza para o resto
+        }
 
         glPopMatrix();
     }

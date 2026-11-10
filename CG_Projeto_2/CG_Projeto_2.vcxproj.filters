@@ -44,6 +44,9 @@
     <ClInclude Include="src\scene\LogicMembroB.h">
       <Filter>Arquivos de Cabeçalho\scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\GameplayMembroB.h">
+      <Filter>Arquivos de Cabeçalho\scene</Filter>
+    </ClInclude>
     <ClInclude Include="Textura.h">
       <Filter>Arquivos de Cabeçalho\render</Filter>
     </ClInclude>
