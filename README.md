@@ -6,6 +6,13 @@ O jogador é o vigia noturno: anda pela igreja com uma lamparina na mão, abre p
 
 ---
 
+## Ferramentas Utilizadas
+
+Visual Studio
+Claude (Claude Opus 4.6)
+Opencode (Deepseek V4 Flash)
+
+---
 ## Requisitos
 
 | O que | Detalhe |
