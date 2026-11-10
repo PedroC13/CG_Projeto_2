@@ -8,7 +8,6 @@
 #include "../Textura.h"
 #include "render/ModelosMembroA.h"
 #include "render/ModelosMembroB.h"
-#include "render/Varinha.h"
 #include "scene/GameplayMembroB.h"
 #include <iostream>
 #include <cstdlib>

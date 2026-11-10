@@ -155,7 +155,6 @@
     <ClInclude Include="src\render\ShaderMembroB.h" />
     <ClInclude Include="src\render\ModelosMembroC.h" />
     <ClInclude Include="src\render\Primitivas.h" />
-    <ClInclude Include="src\render\Varinha.h" />
     <ClInclude Include="src\scene\LogicMembroC.h" />
     <ClInclude Include="src\scene\LogicMembroB.h" />
     <ClInclude Include="src\scene\GameplayMembroB.h" />

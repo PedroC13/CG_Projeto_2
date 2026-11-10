@@ -20,8 +20,8 @@ inline float grausParaRad(float degrees) {
 // Direção para onde o jogador está olhando (vetor de tamanho 1).
 // Usada pela câmera e também pela mira (para saber o que está no centro da tela).
 inline void cameraFrente(float& frenteX, float& frenteY, float& frenteZ) {
-    float y = grausParaRad(yaw);
-    float p = grausParaRad(pitch);
+    float y = grausParaRad(yaw); //lados
+    float p = grausParaRad(pitch); //cima e baixo
 
     frenteX = std::cos(y) * std::cos(p);
     frenteY = std::sin(p);
